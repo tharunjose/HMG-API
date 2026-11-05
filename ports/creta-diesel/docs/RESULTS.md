@@ -1,0 +1,36 @@
+# Results and unresolved work
+
+As of 5 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
+
+## Confirmed on the car
+
+NEMESIS 1.16.7; local base 1.0.1.2; map 424/424; wireless wrapper 2.5.0.1 containing mod 2.5.0-diesel.1. Wireless CarPlay connects, music/audio/calls/Siri work, and it reconnects after a normal restart. Stock radio/camera/steering controls remain functional. Google Maps directions appear in the cluster after enabling the existing TBT setting. Reaching the destination clears the directions.
+
+## Manual cancellation remains unresolved
+
+A parked Google Maps cancellation left the previous cluster instruction visible. Later clearing after a short drive was explicitly confirmed to be **arrival at the destination**, not manual cancellation. Treat these as different cases.
+
+A likely code gap is `CpTurns.stop()`: it clears HUD data and calls `display.guidanceEnded()` only if a car-specific display is registered. This diesel uses the generic path. The EV renderer has separate guidance-ended handling, but that is not proof that installing it on the diesel is correct. No fix has been installed and no captured trace yet proves the cause.
+
+The diagnostic in `usb/cluster-stop-check` is read-only, with selected navigation fields and fixed event labels. First attempt failed before recording because the car lacks `sed`. Revision 2 uses shell builtins and the exact stock service name; a readable-display preflight must pass. It passed local mocked tests and is staged for a vehicle retry. The result of that retry is not yet available.
+
+## Wi-Fi findings
+
+The physical radio existed but the regular menu was hidden. The actual Wi-Fi client activity opened and scanning worked. Engineering “Hotspot Activation” changed a subscription property instead of starting the radio. This incorrect early troubleshooting direction was corrected; it should not be repeated. The radio observation is more specific than finding a Wi-Fi XML, driver file or nearby SSID.
+
+## Local verification
+
+- Original stock capture: 42 selected system files, compared with USB copies using SHA-256.
+- Offline map: 424 points, all 36 declared wireless hooks covered. Three names differ from the EV reference: HomeSetting `cu` instead of `cs`, PhoneProjection status `lN` instead of `lP`, Bluetooth helper `iO` instead of `iP`.
+- Native CarPlay Core/Audio/Utils match the EV reference; recipe byte checks and in-memory patch checks passed against the captured copies.
+- Host engine fixture: install/plan/apply/remove with actual factory feature configuration and permission files; original system hashes restored after removal. Model/firmware/no-Wi-Fi rejection tested.
+- TBT setting ON/OFF: host plan/apply succeeds without additional system-file changes beyond the wireless baseline. Upstream synthetic CarPlay turn tests pass, including Google/India turn handling and HUD clearing; the vehicle cancellation issue shows why those tests do not establish cluster correctness.
+- NEMESIS extraction: original failure reproduced with all ZIP members at 0644; setting helper permissions first fixes preinstall. Modified stock/wrong-product rejection still works.
+
+The public builder is a portable adaptation of the private builder. It keeps the same vehicle payload/recipe code, adds fixed reference-stock checks, and generates the builder’s own author key. Its validation record is summarized in BUILD-VALIDATION.md.
+
+## Not established
+
+Petrol/other trims/firmware; wireless AA on this car; detailed cluster maneuvers/roundabouts; long-term reliability; on-car uninstall/recovery. SmartTube starts but cannot resolve YouTube; internet and playback remain deferred. The codec package installed and stock/CarPlay audio still worked afterward.
+
+Do not report the earlier collector failure as an HMG-API or vehicle fault: it was a missing command in our helper. Do not report the arrival success as a manual-cancellation fix.

@@ -1,0 +1,16 @@
+{
+  "source_repo": "https://github.com/sirishant/HMG-API.git",
+  "source_commit": "3a81b461125ba373c2f842829f24a577b78147e5",
+  "release": "creta-1.3.0",
+  "nemesis_commit": "345f171850c35742f84f0fbe511d0b7ab50364fc",
+  "assets": {
+    "hmgapi-1.0.1-nemesis.zip": {
+      "sha256": "9f2a65c3ba38dc53fc3744c515316f4682a2f6d3606f3703b591cf4731ff5241",
+      "url": "https://github.com/sirishant/HMG-API/releases/download/creta-1.3.0/hmgapi-1.0.1-nemesis.zip"
+    },
+    "wireless-carplay-aa-2.5.0.zip": {
+      "sha256": "59227f03acfa96fdd4c8e286f5d436b1b0dcfd3f92b698a866613a752fe265a6",
+      "url": "https://github.com/sirishant/HMG-API/releases/download/creta-1.3.0/wireless-carplay-aa-2.5.0.zip"
+    }
+  }
+}

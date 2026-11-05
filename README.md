@@ -1,105 +1,56 @@
-<img src="docs/img/hmg-api.png" width="120" align="right" alt="HMG-API logo">
+# HMG-API — Hyundai Creta ICE India
 
-# HMG-API
+**Wireless CarPlay working on one 2024 Indian Hyundai Creta diesel AT.** This is a direct fork of [VysseCodes/HMG-API](https://github.com/VysseCodes/HMG-API). The `creta-ice-india` branch documents and packages the exact-build port developed from [sirishant’s Creta EV work](https://github.com/sirishant/HMG-API), itself based on [VysseCodes/HMG-API](https://github.com/VysseCodes/HMG-API). Installation uses [NEMESIS by xwtk](https://github.com/xwtk/hmg_nemesis).
 
-[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor_on_GitHub-%E2%9D%A4-bf3989?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VysseCodes)
-[![Buy me a coffee on Ko-fi](https://img.shields.io/badge/Buy_me_a_coffee-Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/vyssecodes)
+This is an experimental community fork, not a Hyundai release or a claim of compatibility with all Indian Cretas. **Start with the [diesel setup guide](ports/creta-diesel/docs/SETUP.md).** There is no universal installer: this public snapshot ships source, maps and local build tools. It does not ship the owner’s private vehicle files or signing key.
 
-> **HMG-API is free.** If it saved you a dealer visit or made your drives nicer, please consider chipping in through [GitHub Sponsors](https://github.com/sponsors/VysseCodes) or [Ko-fi](https://ko-fi.com/vyssecodes). It keeps the testing and new-car ports going.
+## Exact tested configuration
 
-A mod manager for Hyundai, Kia and Genesis **Gen5W** navigation head units.
-
-Mods add features to the head unit (wireless CarPlay and Android Auto with
-turn-by-turn on the cluster and HUD, buttons that do more, side panel pages, and
-more) without patching its apps. HMG-API hooks the car's own software while it runs,
-gives every mod a switch, settings and a log, and puts back exactly what a mod
-changed when it's removed.
-
-![The HMG-API app on a Kia EV6](docs/img/screenshots/mods.png)
-
-| Settings | Car Report |
+| Item | Tested value |
 |---|---|
-| ![Settings](docs/img/screenshots/settings.png) | ![Car Report](docs/img/screenshots/report.png) |
+| Car | 2024 Hyundai Creta diesel AT, India; wired AA/CarPlay already supported |
+| Head unit | Gen5W / Android 4.4.2 / API 19 / ARMv7 |
+| Screen software | `SU2I_FL.IND.S5W_M.V010.001.260430` |
+| Android product | `SU2IFL.IND.0000.V010.001.260430` |
+| Hardware identifier | `SU2IFL.IND.STD_AVN_G5_WIDE.007.007` |
+| Onebin | `su2ifl_in` |
+| NEMESIS | 1.16.7 |
+| HMG-API base | Upstream binaries 1.0.1; local packaging 1.0.1.2 |
+| Wireless mod | Upstream code 2.5.0; local mod 2.5.0-diesel.1; NEMESIS wrapper 2.5.0.1 |
 
-## Install
+The screen software and Android product use different spellings. Match the full identifiers and stock hashes. **Petrol, other transmissions, other years, regions and firmware builds have not been tested.** The date `260430` alone is insufficient.
 
-Download the zip for your route from [Releases](https://github.com/VysseCodes/HMG-API/releases):
-a **USB stick** (no computer), **NEMESIS**, or **adb**. Step by step:
-[Installing HMG-API](https://github.com/VysseCodes/HMG-API/wiki/Installing-HMG-API).
+## Owner-reported results — 5 November 2026
 
-HMG-API runs on any Gen5W navigation head unit. Cars with a hook map get everything;
-on others, mods still install and run, and the app's **Car Report** sends what's
-needed to add your car ([Supported cars](https://github.com/VysseCodes/HMG-API/wiki/Supported-cars)).
-
-| Car | Region | Software | Hook map |
-|---|---|---|---|
-| Kia EV6 | USA | 260507 | checked on a car |
-| Kia EV6, Hyundai Ioniq 5 | Canada | 260206 | waiting for a Car Report |
-| Hyundai Ioniq 5 | USA | 260507 | waiting for a Car Report |
-
-## Help and requests
-
-[Open an issue](https://github.com/VysseCodes/HMG-API/issues/new/choose): something
-doesn't work, car or firmware support (the Car Report's QR code fills it in), a new
-hook point, or an idea. Guides are in the [wiki](https://github.com/VysseCodes/HMG-API/wiki).
-
-> **Status: 1.0.1.** Tested on a US Kia EV6 (260507): the hook runtime,
-> mods, the app, buttons, the side panel, Android Auto turn-by-turn and projection
-> events, the Car Report. CarPlay on HMG-API, the installers on a car without adb, and
-> other cars aren't tested yet. Leafia 1.x (HMG Leafia Plus) is the previous project.
-
----
-
-## For developers
-
-### Parts
-
-| Folder | What |
+| Feature | Result |
 |---|---|
-| `core/hmgapid` | root daemon and client (static ARM, no libc) |
-| `core/zygote` | `app_process` wrapper: preloads the hook runtime into the zygote, boot guard |
-| `core/loader` | `libhmgapi_hook.so`: Dalvik method hooks, loads the runtime jar |
-| `core/runtime` | `hmgapi-hook.jar`: hook API, mod loader, launcher and ★-key extension points |
-| `core/app` | the HMG-API app (`hmgapi.app`) |
-| `core/client` | `hmgapi-client.jar`: for mods' own apps and services (settings, services, USB folders, notices) |
-| `install/` | installers: `adb/`, `nemesis/`, `usb/` (DSP OTA), shared `common/`; `dev/` has the scripts used while building the core |
-| `core/hookpoints`, `maps/` | the hook point catalogue (stable names; every point and the cars that have it: [docs/hook-points.md](docs/hook-points.md)) and each car's map (`maps/coverage.json`: which points every car has) |
-| `mods/` | `wireless-carplay-aa`, `adb`, `adbd`; `examples/`: `hello`, `hello-service`, `side-panel`, `car-check`, `nemesis-shortcut` and more |
-| `docs/` | `mod-reference.md` (the `mod.json` reference; `tools/mod-draft.py` drafts one from an existing package), `api-plan.md` (what each community project uses), `vehicle-commands.md`, `micom-map.md`, `car-test.md` (the on-car test session) |
-| `wiki/` | the owners' wiki (GitHub wiki pages: installing, mods, the app, troubleshooting) |
-| `tools/` | `lpatch`, patch makers, build settings |
+| Wireless CarPlay, music/audio, calls, Siri | Working |
+| Automatic CarPlay reconnection | Working after a normal restart cycle |
+| Radio, camera, steering controls | Working with wireless CarPlay active |
+| Google Maps through CarPlay → cluster | Directions display; clearing on arrival at destination works |
+| Manually cancelling Google Maps | **Open issue:** previous instruction remained on the cluster in a parked test |
+| Wireless Android Auto | Not validated on this diesel; community screenshots are not this car’s test evidence |
+| Video Codec Fix 2.1 | Installed; radio and CarPlay audio still work |
+| SmartTube 32.68.6 | Launches; YouTube DNS lookup fails; internet/playback unresolved |
+| On-car uninstall/recovery; long-term reliability | Not established; host restoration tests are not on-car recovery tests |
 
-### Installers
+Cluster turns remain **off by default** while a new owner establishes the wireless baseline. The optional cluster trial is documented with its limitations. No EV routing, charging, battery emulation or EV-specific cluster renderer was installed on the diesel.
 
-`tools/mkinstallers.sh` makes three downloads in `out/dist/`, all carrying the same payload and ending in `install/common/install.sh`:
+## What this branch adds
 
-| Download | For |
-|---|---|
-| `hmgapi-<v>-usb.zip` | a USB stick. Nothing installed yet: Engineering Mode > USB Copy > DSP > Update OTA. NEMESIS installed: its USB install. HMG-API installed: the app's updates (`HMGAPI/updates`, with the mods). An empty `HMGAPI/UNINSTALL` file uninstalls through the DSP route. |
-| `hmgapi-<v>-nemesis.zip` | for NEMESIS: unzipped onto a stick, like NEMESIS's own packages (`NEMESIS.data` installs `packages/hmgapi.zip`; an update keeps HMG-API and its mods) |
-| `hmgapi-<v>-nemesis-package.zip` | the NEMESIS package on its own, for NEMESIS's Package Store and `nemesis install` |
-| `hmgapi-<v>-adb.zip` | `hmgapi-adb.sh install \| uninstall \| status` over adb (first install: root from NEMESIS) |
+- A 424-point diesel hook map, with three names corrected from the EV reference; the supplied map passed **424/424** on the test car. It remains `mapped`, not upstream-certified.
+- A local package builder with pinned upstream downloads, exact product and stock-byte gates, and private per-builder signing.
+- The fix for NEMESIS extracting ZIP files as mode `0644`: enable helper execution **before** running the preinstall checks.
+- An owner guide, Wi-Fi discovery notes, rollback instructions and a privacy-filtered cluster diagnostic. The diagnostic’s first version failed because the unit lacks `sed`; the corrected version is locally tested, awaiting its vehicle result.
 
-Uninstalling puts every file and setting HMG-API or a mod changed back to the stock bytes.
+## Start here
 
-### Build and test
+1. [Compatibility and installation](ports/creta-diesel/docs/SETUP.md)
+2. [Build locally](ports/creta-diesel/docs/BUILD.md)
+3. [Evidence, limitations and open issues](ports/creta-diesel/docs/RESULTS.md)
+4. [Recovery and removal](ports/creta-diesel/docs/RECOVERY.md)
+5. [Contributing and upstream credits](ports/creta-diesel/docs/CONTRIBUTING.md)
 
-```
-./build.sh
-```
+The inherited repository contains EV and other-car mods. Their presence does **not** make them appropriate for this diesel. Use the dedicated port workflow, not the inherited generic installer or an unmodified Creta EV release. The [original upstream README](README-upstream.md) is retained for architecture context.
 
-Everything goes to `out/`. Needs clang + lld, a JDK and the Android SDK (build-tools, a platform `android.jar`). No manufacturer files: the loader links against stand-ins for the head unit's libraries (`core/loader/syslib-stubs.sh`, the same bytes as linking the unit's own). Without HMG-API's signing key (`HMGAPI_KEY`) the app is signed with a throwaway key.
-
-GitHub Actions: `ci.yml` builds and runs every off-car test on each push and pull request; `release.yml` turns a version tag (`v1.0.0-beta.1`) into a signed draft release (keys in repository secrets; bundled mods in `tools/release-mods.txt`); `wiki.yml` publishes `wiki/` to the GitHub wiki.
-
-```
-tools/test-all.sh
-```
-
-Runs the off-car tests under qemu-arm. With stock trees listed in `tools/hook-trees.local`
-(private), it also tests every hook point on every car (`tools/test-hooks.py`) and the
-on-car mapper against `tools/map-car.py` (`tools/probe-test.py`).
-
-## Licence
-
-AGPL-3.0 (see `LICENSE` and `NOTICE.md`).
+License: [AGPL-3.0](LICENSE). Existing upstream copyright and license notices remain in place. This branch is based on sirishant/HMG-API commit `3a81b461125ba373c2f842829f24a577b78147e5` (`creta-1.3.0`); later upstream changes have not been integrated or vehicle-tested here.
