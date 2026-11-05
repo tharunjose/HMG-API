@@ -11,4 +11,4 @@ Output: CRETA-CLUSTER-STOP, with COMPLETE.txt when finished. FAILED.txt indicate
 
 ## Collector correction
 
-First vehicle attempt failed before capture: worker.txt reports `sed: not found`. Revision 2 uses the exact service name derived from the captured stock framework and a POSIX-shell-only field filter. It checks for a readable Display Type field before announcing that capture started. The old cluster-fields.sed is retained only as the failed revision reference; no active script uses it. Revised collector is locally tested, not yet run on the vehicle.
+First vehicle attempt failed before capture: worker.txt reports `sed: not found`. Revision 2 uses the exact service name derived from the captured stock framework and a POSIX-shell-only field filter. It checks for a readable Display Type field before announcing that capture started. The failed sed-based filter is not included in this public port; active filtering uses shell builtins. Revised collector is locally tested, not yet run on the vehicle.
