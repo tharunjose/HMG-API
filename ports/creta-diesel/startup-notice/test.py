@@ -40,7 +40,14 @@ esac
     assert subprocess.run(['sh',scripts/'postinstall.sh'],cwd=root,env=env).returncode==1
     assert not (allow/'startup_notice').exists() and command_permission.exists()
     # Only the exact one-shot request may reach the fake vehicle, after a valid Park reading.
-    (root/'sleep').write_text('#!/bin/sh\nexit 0\n')
+    (root/'sleep').write_text('#!/bin/sh\necho slept >> "$ROOT/sleeps"\n')
+    for name, body in {
+        'getprop': 'echo "$TEST_BOOT"',
+        'service': 'echo "Service com.hkmc.factory: $TEST_FACTORY"'
+    }.items():
+        tool=root/name
+        tool.write_text('#!/bin/sh\n'+body+'\n')
+        tool.chmod(0o700)
     (root/'sleep').chmod(0o700)
     code=(here/'dismiss.sh').read_text().replace(
         'export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin',
@@ -48,9 +55,18 @@ esac
     for state in ('1','0','-'):
         calls = root/'calls'
         calls.unlink(missing_ok=True)
-        result=subprocess.run(['sh','-c',code],cwd=root,env=dict(env,TEST_PARK=state),capture_output=True)
+        (root/'sleeps').unlink(missing_ok=True)
+        result=subprocess.run(['sh','-c',code],cwd=root,env=dict(env,TEST_PARK=state,TEST_BOOT='1',TEST_FACTORY='found'),capture_output=True)
         if state=='1':
             assert result.returncode==0 and calls.read_text()=='vehicle-do startup_notice dismiss\n'
+            assert not (root/'sleeps').exists(), 'ready path added a sleep'
         else:
             assert not calls.exists()
-print('PASS Park gate, bounded unavailable state, single request, prior permissions and installer failure restoration.')
+    for boot, factory in [('0','found'),('1','not found')]:
+        (root/'calls').unlink(missing_ok=True)
+        (root/'sleeps').unlink(missing_ok=True)
+        result=subprocess.run(['sh','-c',code],cwd=root,
+            env=dict(env,TEST_PARK='1',TEST_BOOT=boot,TEST_FACTORY=factory),capture_output=True)
+        assert result.returncode==1 and not (root/'calls').exists()
+        assert len((root/'sleeps').read_text().splitlines())==89
+print('PASS zero-sleep ready path, Android/factory readiness, Park gate, bounded unavailable state, single request, prior permissions and installer failure restoration.')

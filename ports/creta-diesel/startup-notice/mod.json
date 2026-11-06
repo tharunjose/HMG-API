@@ -1,13 +1,13 @@
 {
   "id": "creta-startup-notice",
   "name": "Creta startup agreement dismissal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "hmgapi": ">=1.0.1",
   "authors": [
     "Creta diesel port"
   ],
   "license": "AGPL-3.0",
-  "description": "Requests native startup-notice dismissal once per head-unit start, only in Park. Enables the requested HMG-API notice permission.",
+  "description": "Requests native startup-notice dismissal as soon as Android, factory Binder and Park are ready, once per head-unit start.",
   "system": {
     "product": "SU2IFL.IND.0000.V010.001.260430",
     "model": "SU2IFL",

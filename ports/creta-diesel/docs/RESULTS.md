@@ -70,3 +70,5 @@ Owner-confirmed on 6 November 2026 — creta-auto-vent 1.0.0 passed the requeste
 Version1.1.0 is prepared with independent physical RHD passenger startup enable and level controls, passenger off by default. Upgrade and scheduler tests passed on the host. Vehicle installation and optional passenger startup verification are pending.
 
 Startup-agreement dismissal1.0.0 is prepared using HMG-API’s native startup_notice command, Park and once-per-start guard. Permission restoration and bounded script/engine tests passed on the host. The factory screen behavior and routine car-wake timing are pending owner verification.
+
+The owner now prefers complete startup-screen skipping. Exact Creta SystemUI files are pending the new read-only collector. Fallback dismissal1.0.1 removes the fixed12-second delay and waits for Android boot, factory service and Park readiness. Its host tests passed; neither the full skip nor fallback screen behavior is vehicle-verified.
