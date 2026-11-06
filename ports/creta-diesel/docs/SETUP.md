@@ -54,7 +54,7 @@ Keep the custom base/map and wireless package versions together. Do not accept u
 
 Stock Hyundai navigation must already display directions on your cluster. The tested phone was an iPhone using Google Maps through CarPlay.
 
-In HMG-API → Mods → Wireless CarPlay + AA — Creta diesel trial, enable only **Cluster turns**, Save settings → Apply changes → Restart unit. The existing label says “unsupported…keep off” because the original package excluded cluster output from its initial validation. This remains an experimental option: directions and arrival clearing now have one-owner confirmation, but manual cancellation left a stale instruction.
+In HMG-API → Mods → Wireless CarPlay + AA — Creta diesel trial, enable only **Cluster turns**, Save settings → Apply changes → Restart unit. The existing label says “unsupported…keep off” because the original package excluded cluster output from its initial validation. On the original package, turns appeared and arrival cleared them, but manual cancellation could leave the previous turn visible. With [stage 17, wireless package 2.5.0.3](../cluster-stop-fix/README.md), the owner confirmed that manually cancelling Google Maps returned this diesel cluster to its compass.
 
 Cancel any built-in navigation route, start Google Maps while parked, and select the cluster’s navigation page with the usual controls. Compare what is shown. Do not install the Creta EV RHD renderer or EV routing to “complete” the diesel setup: these have not been validated here. Roundabouts, distances, route changes and long-term stability need more evidence.
 

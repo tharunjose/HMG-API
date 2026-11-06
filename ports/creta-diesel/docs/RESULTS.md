@@ -6,7 +6,9 @@ As of 6 November 2026; one owner, one 2024 India Creta diesel AT, full Android p
 
 NEMESIS 1.16.7; local base 1.0.1.2; map 424/424; wireless wrapper 2.5.0.1 containing mod 2.5.0-diesel.1. Wireless CarPlay connects, music/audio/calls/Siri work, and it reconnects after a normal restart. Stock radio/camera/steering controls remain functional. Google Maps directions appear in the cluster after enabling the existing TBT setting. Reaching the destination clears the directions.
 
-## Manual cancellation remains unresolved
+On 6 November 2026 the owner reported success on the stage 17 parked test. After manually cancelling Google Maps on iPhone CarPlay, the cluster returned to the compass without starting Hyundai navigation. The tested wireless package was 2.5.0.3 (mod 2.5.0-diesel.3), with Cluster turns enabled, on SU2IFL.IND.0000.V010.001.260430.
+
+## Manual cancellation on earlier versions
 
 A parked Google Maps cancellation left the previous cluster instruction visible. Later clearing after a short drive was explicitly confirmed to be **arrival at the destination**, not manual cancellation. Treat these as different cases. On 6 November, the owner reproduced the Google Maps manual-cancellation issue and confirmed that starting a route in the head unit’s Hyundai navigation, then cancelling it, returns the cluster to normal. This is a temporary clearing workaround, not a repair of the CarPlay cancellation path.
 

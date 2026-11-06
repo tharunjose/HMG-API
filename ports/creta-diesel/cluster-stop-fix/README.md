@@ -1,5 +1,7 @@
 # Optional manual-cancellation trial for SU2IFL India 260430
 
+On 6 November 2026 the owner reported success on the stage 17 parked test. After manually cancelling Google Maps on iPhone CarPlay, the cluster returned to the compass without starting Hyundai navigation. The tested wireless package was 2.5.0.3 (mod 2.5.0-diesel.3), with Cluster turns enabled, on SU2IFL.IND.0000.V010.001.260430.
+
 The optional wireless wrapper 2.5.0.2 contains mod 2.5.0-diesel.2. On a stop after active generic CarPlay guidance, it sends a single no-symbol request through the existing Hyundai navigation display API. It tracks which route component supplied the main turn. An initial idle update from a different component must not remove the active main turn. The cluster may clear the arrow or return to its compass. This is a local test candidate. On-car cancellation, arrival and wireless CarPlay after the update still need verification.
 
 ## Build
