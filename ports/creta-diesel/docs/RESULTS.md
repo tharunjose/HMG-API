@@ -54,3 +54,7 @@ Stage 16 returned all 45 readable samples on the exact target with 2.5.0-diesel.
 Stage 17 (wrapper 2.5.0.3, mod 2.5.0-diesel.3) keeps the stage 15 ownership checks. When generic CarPlay guidance ends it sends exactly one type 8 main-display frame if it has a live Hyundai navigation heading no more than 30 seconds old. The angle is mirrored and rounded to the cluster's 22.5-degree steps. It leaves the secondary compass/trip frame to the car. Invalid, missing, sticky or stale heading cannot generate a compass request; stage 15's no-symbol fallback remains. There are no delayed writes. Host-tested; actual delivery of the heading and the resulting display are unverified on the vehicle.
 
 Owner-confirmed on 6 November 2026 — a short tap of the steering voice button opens Siri with creta-siri-short 1.0.0 installed. The physical hold worked before this install.
+
+## Steering phone button
+
+Owner-confirmed on 6 November 2026 — a short steering phone-button press opens CarPlay Phone with creta-carplay-phone 1.0.0 installed. Incoming-call answering with the button remains to be checked.
