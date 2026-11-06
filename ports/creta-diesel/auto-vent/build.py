@@ -37,9 +37,9 @@ with tempfile.TemporaryDirectory() as tmp:
         descriptor = """[nemesis]
 version=1.1
 id=hmgapi.creta-auto-vent
-name=Creta driver ventilation test
+name=Creta RHD driver ventilation test
 type=application
-package-version=0.1.0
+package-version=0.1.1
 short-desc="Launch once while parked to test driver ventilation."
 os="SU2IFL.IND.0000.V010.001.260430"
 models="any"

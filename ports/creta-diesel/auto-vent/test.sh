@@ -1,9 +1,11 @@
 #!/system/bin/sh
-# Manual proof of the driver ventilation command before adding startup automation.
+# On this RHD Creta the native driver label selected the physical left passenger seat.
+# The opposite native label is the physical right-driver candidate for this test.
 export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
 H=/system/bin/hmgapid
 toast() { am broadcast -a com.hkmc.intent.action.TOAST -e com.hkmc.intent.extra.TOAST_MESSAGE "$1" --ez com.hkmc.intent.extra.TOAST_POPUPSHOWING true >/dev/null 2>&1; }
-echo 'Driver ventilation manual test'
+echo 'RHD driver ventilation manual test'
+seat=passenger
 attempt=0
 park=
 while [ "$attempt" -lt 10 ]; do
@@ -14,11 +16,11 @@ while [ "$attempt" -lt 10 ]; do
 done
 if [ "$park" != 'gear.park 1' ]; then echo "$park"; toast 'Seat test stopped: no Park reading'; exit 1; fi
 echo 'Before:'
-"$H" vehicle seat_vent.driver seat_state.driver seat_vent.passenger
-echo 'Request: seat_vent driver high'
-if ! "$H" vehicle-do seat_vent driver high; then toast 'Driver ventilation command failed'; exit 1; fi
+"$H" vehicle seat_vent.driver seat_state.driver seat_vent.passenger seat_state.passenger
+echo "Request: seat_vent $seat high (physical RHD driver candidate)"
+if ! "$H" vehicle-do seat_vent "$seat" high; then toast 'Driver ventilation command failed'; exit 1; fi
 sleep 2
 echo 'After:'
-"$H" vehicle seat_vent.driver seat_state.driver seat_vent.passenger
-toast 'Driver ventilation test sent: check driver level 3'
+"$H" vehicle seat_vent.driver seat_state.driver seat_vent.passenger seat_state.passenger
+toast 'Driver ventilation test sent: check right driver seat level 3'
 exit 0
