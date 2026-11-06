@@ -1,24 +1,17 @@
-# Automatic RHD driver ventilation — 1.0.0
+# Passenger startup ventilation settings — queued version 1.1.0
 
-Owner-confirmed on 6 November 2026 — creta-auto-vent 1.0.0 passed the requested startup and physical-control test. The physical right driver seat starts ventilation at the default level 3, the passenger seat stays off, and reducing or switching off ventilation with the physical control keeps that selection.
+Prepared on 6 November 2026 for installation on 7 November morning. Installed ventilation 1.0.0 already passed the driver startup and physical-control tests.
 
-The owner confirmed manual test 0.1.1 controls the physical right driver seat at level 3 and the seat controls work. This update requests that same native seat at startup.
+This update adds independent passenger startup enable and level 1/2/3 settings. Passenger startup defaults off. Its stored level defaults to 3 for when the owner enables it. The driver's existing enable and fan level keys are retained. Seat labels describe the physical RHD seats — driver right, passenger left.
 
-1. Install **Creta RHD startup ventilation 1.0.0** from Nemesis → Package Store → USB as an update to the existing ventilation test.
-2. Remove the USB. After Android has been running at least two minutes, use HMG-API → Restart unit. The new hooks load on that restart.
-3. With the car parked and fan off, do a normal car shutdown, wait for the screen to go dark, then start again. Allow up to 60 seconds for driver ventilation. Confirm the passenger seat stays off.
-4. Lower or switch off driver ventilation and wait 30 seconds. It should keep your selection.
+Install the update from Nemesis → Package Store → USB tomorrow. After installation, allow at least two minutes of Android uptime before selecting HMG-API → Restart unit. Open HMG-API → Mods → Creta RHD startup ventilation → Settings and confirm the passenger switch is off. At the next normal power-on, verify driver ventilation starts as before and passenger remains off.
 
-In HMG-API → Mods → Creta RHD startup ventilation → Settings, use **Ventilation at startup** and **Startup fan level**. Choose level 1, 2 or 3 (default 3), Save settings and Apply changes. The next power-on cycle uses the new level. Ventilation or heat already selected at startup is preserved.
+If passenger startup is enabled later, Save settings and Apply changes. Its selected level takes effect at the next power-on. Existing seat-climate selections and later physical control changes keep priority independently for each seat.
 
-The trigger is the native ACC power-on state, not an engine-speed reading. It includes a head-unit restart while ACC is on. It waits five seconds initially, then allows at most twelve readiness checks at five-second intervals. Off cancels pending work. It makes at most one seat-setting request per cycle and does not keep enforcing the level.
+Host checks exercised the actual scheduler with old driver-only settings, passenger off by default, separate levels and seat selection, one seat already selected or unavailable, duplicate startup notifications and an uncertain command reply. Upgrade from 1.0.0 retained the saved driver settings bytes. Runtime DEX and signatures were verified. The updated settings screen and passenger startup path still need vehicle verification.
 
-To disable it, turn off Ventilation at startup and save/apply, or disable this mod. To remove it, uninstall only Creta RHD startup ventilation. Normal physical seat controls set the current fan level.
+## Build and test
 
-Host tests cover native ACCON 0 versus LOGICON 1, duplicate broadcasts, power-off cancellation, stale tasks, bounded retries, three level mappings, and upgrade/removal alongside the current Siri, Phone and wireless mods. DEX inspection confirms the physical RHD driver candidate uses the owner-confirmed passenger-labelled USM method. Automatic startup and the physical-control check passed the owner’s test on this car.
+Build with the original stage08 baseline, owner key and signing engine classes, an absolute JDK17 --java path, --android-jar and --r8. Compile-only runtime stubs from ../phone-key/api-stubs are excluded from the DEX. AutoVent uses a separate StartCycle for each SeatTarget. The existing driver settings keys startup_enabled and level remain intact. New passenger_enabled is false by default and passenger_level is high.
 
-## Source and build
-
-AutoVent uses the existing mapped automotive-service loader hook to listen for the car's sticky ACC status broadcast in system_server. Its seat reads and request follow the mapped BCM and USM APIs used by HMG-API’s vehicle hub. Native logical passenger maps to the physical RHD driver on this exact car, confirmed in manual test 0.1.1. Earlier version 0.1.0 selected the left passenger seat and was superseded.
-
-Build from the same stage08 baseline with the owner key, signing engine classes, JDK17 --java path, --android-jar and --r8 as for ../phone-key/build.py. That folder’s compile-only API stubs are reused and excluded from the output. Compile StartCycle.java and StartCycleTest.java with javac and run the test with assertions. The manual scripts remain as the reference for the confirmed seat command.
+Run test-settings.py against the actual scheduler and StartCycleTest with assertions for the native power cycle. The tests use simulated service responses. Manual test 0.1.0 demonstrated that the native driver API selected the physical left passenger. Test 0.1.1 confirmed native passenger selected the physical right driver. Version1.0.0 passed automatic driver startup and manual override on this car.

@@ -1,13 +1,13 @@
 {
   "id": "creta-auto-vent",
   "name": "Creta RHD startup ventilation",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "hmgapi": ">=1.0.1",
   "authors": [
     "Creta diesel port"
   ],
   "license": "AGPL-3.0",
-  "description": "Right driver seat startup ventilation, default level3. Adjustable for next startup. Keeps seat climate already selected.",
+  "description": "Independent RHD driver and passenger startup ventilation levels. Passenger startup defaults off. Preserves seat climate already selected.",
   "system": {
     "product": "SU2IFL.IND.0000.V010.001.260430",
     "model": "SU2IFL",

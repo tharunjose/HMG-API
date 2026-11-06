@@ -40,7 +40,7 @@ with tempfile.TemporaryDirectory() as tmp:
     subprocess.run([javac, '--release', '8', '-cp', str(args.android_jar), '-d', str(api),
                     *map(str, api_source.glob('*.java'))], check=True)
     subprocess.run([javac, '--release', '8', '-cp', str(args.android_jar)+os.pathsep+str(api),
-                    '-d', str(classes), str(here/'AutoVent.java'), str(here/'StartCycle.java')], check=True)
+                    '-d', str(classes), str(here/'AutoVent.java'), str(here/'StartCycle.java'), str(here/'SeatTarget.java')], check=True)
     output = mod/'dex-output'
     output.mkdir()
     subprocess.run([args.java, '-cp', str(args.r8), 'com.android.tools.r8.D8',
@@ -69,8 +69,8 @@ version=1.1
 id=hmgapi.creta-auto-vent
 name=Creta RHD startup ventilation
 type=application
-package-version=1.0.0
-short-desc="Right driver ventilation on power-on; adjustable level."
+package-version=1.1.0
+short-desc="Independent front seat startup settings; passenger off."
 os="SU2IFL.IND.0000.V010.001.260430"
 models="any"
 depends="hmgapi@>=1.0.1"

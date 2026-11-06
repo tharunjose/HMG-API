@@ -16,7 +16,8 @@ public final class AutoVent extends ModEntry {
     static final String ACTION = "com.hkmc.intent.action.ACTION_ACC_STATUS_CHANGED";
     static final String STATUS = "android.ibox.mode.EXTRA_ACC_STATUS";
     private boolean installed;
-    private final StartCycle cycle = new StartCycle();
+    private final StartCycle driverCycle = new StartCycle();
+    private final StartCycle passengerCycle = new StartCycle();
 
     @Override public void zygoteInit(final ModContext mod) {
         mod.hook(null, "framework.hkmc_loader.automotive_service", new MethodHook() {
@@ -30,7 +31,7 @@ public final class AutoVent extends ModEntry {
                 BroadcastReceiver receiver = new BroadcastReceiver() {
                     @Override public void onReceive(Context c, Intent intent) {
                         if (intent == null || !ACTION.equals(intent.getAction())) return;
-                        schedule(mod, context, worker, filter, intent.getIntExtra(STATUS, -1));
+                        scheduleSeats(mod, context, worker, filter, intent.getIntExtra(STATUS, -1));
                     }
                 };
                 context.registerReceiver(receiver, filter, null, worker);
@@ -40,7 +41,7 @@ public final class AutoVent extends ModEntry {
                     @Override public void run() {
                         Intent sticky = context.registerReceiver(null, filter);
                         if (sticky != null) {
-                            schedule(mod, context, worker, filter, sticky.getIntExtra(STATUS, -1));
+                            scheduleSeats(mod, context, worker, filter, sticky.getIntExtra(STATUS, -1));
                         } else if (++checks < 24) {
                             worker.postDelayed(this, 5000);
                         }
@@ -51,17 +52,24 @@ public final class AutoVent extends ModEntry {
         });
     }
 
+    private void scheduleSeats(ModContext mod, Context context, Handler worker,
+                               IntentFilter filter, int status) {
+        schedule(mod, context, worker, filter, status, driverCycle, SeatTarget.DRIVER);
+        schedule(mod, context, worker, filter, status, passengerCycle, SeatTarget.PASSENGER);
+    }
+
     private void schedule(final ModContext mod, final Context context, final Handler worker,
-                          final IntentFilter filter, int status) {
+                          final IntentFilter filter, int status, final StartCycle cycle,
+                          final SeatTarget seat) {
         final int token = cycle.power(status);
         if (token < 0) return;
         // Snapshot choices once for this startup; settings changed later apply next cycle.
-        final boolean enabled = mod.settingBoolean("startup_enabled", true);
-        final int step = StartCycle.step(mod.settingString("level", "high"));
+        final boolean enabled = mod.settingBoolean(seat.enabledKey, seat.defaultEnabled);
+        final int step = StartCycle.step(mod.settingString(seat.levelKey, "high"));
         worker.postDelayed(new Runnable() {
             @Override public void run() {
                 if (!cycle.attempt(token)) return;
-                if (!enabled || !mod.enabled() || !mod.settingBoolean("startup_enabled", true)) {
+                if (!enabled || !mod.enabled() || !mod.settingBoolean(seat.enabledKey, seat.defaultEnabled)) {
                     cycle.finish();
                     return;
                 }
@@ -74,10 +82,10 @@ public final class AutoVent extends ModEntry {
                     }
                     Object bcm = service("bcm");
                     int state = ((Number) Points.call(null,
-                            "framework.bcm_service.ast_seat_heat_state", bcm)).intValue();
+                            seat.readPoint, bcm)).intValue();
                     if (state >= 3 && state <= 8) {
                         cycle.finish();
-                        mod.log("RHD driver ventilation: seat climate already selected; kept");
+                        mod.log("RHD " + seat.name + " ventilation: seat climate already selected; kept");
                         return;
                     }
                     if (state != 2) {
@@ -87,10 +95,10 @@ public final class AutoVent extends ModEntry {
                     Object usm = service("usm");
                     // Finish before sending: a lost Binder reply must not repeat a seat command.
                     cycle.finish();
-                    Points.call(null, "framework.usm_service.seat_heat_passenger", usm, step);
-                    mod.log("RHD right driver ventilation: startup level " + (step - 2) + " requested");
+                    Points.call(null, seat.writePoint, usm, step);
+                    mod.log( "RHD " + seat.name + " ventilation: startup level " + (step - 2) + " requested");
                 } catch (Throwable unavailable) {
-                    mod.log("RHD driver ventilation: service unavailable or request failed");
+                    mod.log("RHD " + seat.name + " ventilation: service unavailable or request failed");
                     worker.postDelayed(this, 5000);
                 }
             }
