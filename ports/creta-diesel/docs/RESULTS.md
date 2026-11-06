@@ -34,3 +34,9 @@ The public builder is a portable adaptation of the private builder. It keeps the
 Petrol/other trims/firmware; wireless AA on this car; detailed cluster maneuvers/roundabouts; long-term reliability; on-car uninstall/recovery. SmartTube starts but cannot resolve YouTube; internet and playback remain deferred. The codec package installed and stock/CarPlay audio still worked afterward.
 
 Do not report the earlier collector failure as an HMG-API or vehicle fault: it was a missing command in our helper. Do not report the arrival success as a manual-cancellation fix.
+
+## Completed capture and cancellation trial — 6 November 2026
+
+Revision 3 completed all 60 samples over about seven minutes. The initial cluster display was the compass. Samples 3–8 showed direction to destination. At sample 9 the trip distance became zero with an invalid distance unit and the compass degree returned, but the main display continued to indicate direction to destination. At sample 18 the direction and unit matched the pattern seen during the native route. At sample 21 the main display returned to the compass and stayed there through sample 59. The phase interpretation follows the requested test order. There were no owner action timestamps or definitive callback markers. This supports testing the main-display stop handling but leaves delivery of the Google Maps cancellation event unverified.
+
+The optional wireless wrapper 2.5.0.2 contains mod 2.5.0-diesel.2. On a stop after active generic CarPlay guidance, it sends a single no-symbol request through the existing Hyundai navigation display API. It tracks which route component supplied the main turn. An initial idle update from a different component must not remove the active main turn. The cluster may clear the arrow or return to its compass. This is a local test candidate. On-car cancellation, arrival and wireless CarPlay after the update still need verification.

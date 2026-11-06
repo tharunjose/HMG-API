@@ -1,0 +1,26 @@
+[
+  {
+    "old": "        if (guiding && display != null) display.guidanceEnded();",
+    "new": "        if (guiding) {\n            if (display != null) {\n                display.guidanceEnded();\n            } else {\n                // Clear the main cluster symbol too (same fallback as AaTurns.release).\n                // Only after our guidance, so idle/repeated stops do not overwrite stock navigation.\n                cluster.tbtInfo(0, 0, 0f, 0f, -1, 0, 0, 0, -1);\n            }\n        }"
+  },
+  {
+    "old": "    boolean guiding;",
+    "new": "    boolean guiding;\n    Integer mainOwner;"
+  },
+  {
+    "old": "        if (u.state == 0) {\n            stop();",
+    "new": "        if (u.state == 0) {\n            if (display == null && mainOwner != null && !id.equals(mainOwner)) {\n                hudBlank();\n                return;\n            }\n            stop();"
+  },
+  {
+    "old": "        guiding = true;",
+    "new": "        guiding = true;\n        mainOwner = id;"
+  },
+  {
+    "old": "        guiding = false;",
+    "new": "        guiding = false;\n        mainOwner = null;"
+  },
+  {
+    "old": "    void sessionStarted() {\n        reset();",
+    "new": "    void sessionStarted() {\n        guiding = false;\n        mainOwner = null;\n        reset();"
+  }
+]

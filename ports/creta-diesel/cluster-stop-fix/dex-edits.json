@@ -1,0 +1,18 @@
+[
+  {
+    "old": ".field guiding:Z",
+    "new": ".field guiding:Z\n\n.field mainOwner:Ljava/lang/Integer;"
+  },
+  {
+    "old": "    .line 338\n    invoke-virtual {p0}, Lhmgapi/mods/wireless/dipo/CpTurns;->stop()V",
+    "new": "    iget-object v0, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->display:Lhmgapi/mods/wireless/api/TurnDisplay;\n    if-nez v0, :owner_stop\n    iget-object v0, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->mainOwner:Ljava/lang/Integer;\n    if-eqz v0, :owner_stop\n    invoke-virtual {p1, v0}, Ljava/lang/Integer;->equals(Ljava/lang/Object;)Z\n    move-result v0\n    if-nez v0, :owner_stop\n    invoke-virtual {p0}, Lhmgapi/mods/wireless/dipo/CpTurns;->hudBlank()V\n    return-void\n\n    :owner_stop\n    .line 338\n    invoke-virtual {p0}, Lhmgapi/mods/wireless/dipo/CpTurns;->stop()V"
+  },
+  {
+    "old": "    iput-boolean v7, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->guiding:Z",
+    "new": "    iput-boolean v7, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->guiding:Z\n    iput-object p1, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->mainOwner:Ljava/lang/Integer;"
+  },
+  {
+    "old": "    .line 284\n",
+    "new": "    iput-boolean v0, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->guiding:Z\n    iput-object v0, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->mainOwner:Ljava/lang/Integer;\n\n    .line 284\n"
+  }
+]

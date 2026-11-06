@@ -1,0 +1,7 @@
+{
+  "input_hooks_sha256": "51221edd5dc599100f87fa119b8c1c5b92667c6d2851bd2ee4bd891e018d24b1",
+  "class": "hmgapi/mods/wireless/dipo/CpTurns.smali",
+  "source_commit": "3a81b461125ba373c2f842829f24a577b78147e5",
+  "candidate_mod_version": "2.5.0-diesel.2",
+  "status": "experimental; host tests and on-car trial required"
+}
