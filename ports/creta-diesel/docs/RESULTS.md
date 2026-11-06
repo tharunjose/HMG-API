@@ -68,3 +68,5 @@ The owner confirmed corrected manual version0.1.1 works on the physical right dr
 Owner-confirmed on 6 November 2026 — creta-auto-vent 1.0.0 passed the requested startup and physical-control test. The physical right driver seat starts ventilation at the default level 3, the passenger seat stays off, and reducing or switching off ventilation with the physical control keeps that selection. Other level selections have host coverage; a separate vehicle test changing each startup level was not reported.
 
 Version1.1.0 is prepared with independent physical RHD passenger startup enable and level controls, passenger off by default. Upgrade and scheduler tests passed on the host. Vehicle installation and optional passenger startup verification are pending.
+
+Startup-agreement dismissal1.0.0 is prepared using HMG-API’s native startup_notice command, Park and once-per-start guard. Permission restoration and bounded script/engine tests passed on the host. The factory screen behavior and routine car-wake timing are pending owner verification.

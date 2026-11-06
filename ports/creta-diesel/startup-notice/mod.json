@@ -1,0 +1,34 @@
+{
+  "id": "creta-startup-notice",
+  "name": "Creta startup agreement dismissal",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "authors": [
+    "Creta diesel port"
+  ],
+  "license": "AGPL-3.0",
+  "description": "Requests native startup-notice dismissal once per head-unit start, only in Park. Enables the requested HMG-API notice permission.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "model": "SU2IFL",
+    "region": "IND",
+    "firmware": "260430"
+  },
+  "vehicle": {
+    "read": [
+      "gear.park"
+    ],
+    "commands": [
+      "startup_notice"
+    ]
+  },
+  "services": [
+    {
+      "name": "dismiss",
+      "script": "dismiss.sh",
+      "user": "root",
+      "restart": false,
+      "start": "android"
+    }
+  ]
+}
