@@ -13,3 +13,5 @@ To revert, uninstall **Creta steering voice (short press)** from Nemesis → My 
 The package contains one input declaration adapted from the upstream Car Check example. The installed 1.0.1 runtime reads the sent key and injects a voice hold using the physical input device. The diesel framework identifies the steering PTT key as 0x108. The HMG-API engine host publishes one replacement binding, rejects the tested alternate firmware products, and restores the previous input list on removal. System hashes and wireless settings matched the stage 17 fixture before and after installation.
 
 Run build.py with --baseline pointing to the signed original stage 08 wireless wrapper, --engine-classes pointing to the compiled signing engine, --key pointing to your local owner key, and --output pointing to a new ZIP. Use JDK 17. The baseline supplies the generic Nemesis package lifecycle scripts. The signed payload contains mod.json and its signature metadata.
+
+Owner-confirmed on 6 November 2026 — a short tap of the steering voice button opens Siri with creta-siri-short 1.0.0 installed. The physical hold worked before this install.
