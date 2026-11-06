@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "key": "startup_enabled",
+      "type": "toggle",
+      "default": true,
+      "title": "Ventilation at startup",
+      "description": "Apply to the right driver seat on the next power-on."
+    },
+    {
+      "key": "level",
+      "type": "choice",
+      "default": "high",
+      "title": "Startup fan level",
+      "description": "Used at the next startup. An existing seat-climate selection is kept.",
+      "options": [
+        {
+          "value": "low",
+          "title": "Level 1 \u2014 low"
+        },
+        {
+          "value": "medium",
+          "title": "Level 2 \u2014 medium"
+        },
+        {
+          "value": "high",
+          "title": "Level 3 \u2014 maximum"
+        }
+      ]
+    }
+  ]
+}

@@ -1,38 +1,24 @@
 {
   "id": "creta-auto-vent",
-  "name": "Creta RHD driver ventilation test",
-  "version": "0.1.1",
+  "name": "Creta RHD startup ventilation",
+  "version": "1.0.0",
   "hmgapi": ">=1.0.1",
   "authors": [
     "Creta diesel port"
   ],
   "license": "AGPL-3.0",
-  "description": "RHD right-seat ventilation level 3 test. Native passenger API is the right-seat candidate; pending physical confirmation.",
+  "description": "Right driver seat startup ventilation, default level3. Adjustable for next startup. Keeps seat climate already selected.",
   "system": {
     "product": "SU2IFL.IND.0000.V010.001.260430",
     "model": "SU2IFL",
     "region": "IND",
     "firmware": "260430"
   },
-  "vehicle": {
-    "read": [
-      "gear.park",
-      "seat_vent.driver",
-      "seat_state.driver",
-      "seat_vent.passenger",
-      "seat_state.passenger"
-    ],
-    "commands": [
-      "seat_vent"
-    ]
-  },
-  "services": [
-    {
-      "name": "test",
-      "script": "test.sh",
-      "user": "root",
-      "restart": false,
-      "start": "manual"
+  "hooks": {
+    "jar": "hooks.jar",
+    "entry": "hmgapi.mods.creta.AutoVent",
+    "points": {
+      "framework.hkmc_loader.automotive_service": "observe"
     }
-  ]
+  }
 }

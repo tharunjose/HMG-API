@@ -1,14 +1,22 @@
-# RHD driver ventilation correction — 0.1.1
+# Automatic RHD driver ventilation — 1.0.0
 
-The owner’s 0.1.0 test switched on the physical left passenger seat. On this Indian RHD Creta, the native API’s driver label therefore does not identify the physical driver seat. The correction uses the opposite native label, passenger, as the right-driver candidate. That side still needs physical confirmation.
+The owner confirmed manual test 0.1.1 controls the physical right driver seat at level 3 and the seat controls work. This update requests that same native seat at startup.
 
-1. Switch off the left passenger ventilation using the normal seat control.
-2. Park in P with the engine running. Install **Creta RHD driver ventilation test 0.1.1** from Nemesis → Package Store → USB as an update to the existing test.
-3. Open My Packages → Creta RHD driver ventilation test → Launch.
-4. Confirm the physical right driver seat reaches ventilation level 3 and the left passenger seat stays off. Lower or switch off the driver fan with its physical control.
+1. Install **Creta RHD startup ventilation 1.0.0** from Nemesis → Package Store → USB as an update to the existing ventilation test.
+2. Remove the USB. After Android has been running at least two minutes, use HMG-API → Restart unit. The new hooks load on that restart.
+3. With the car parked and fan off, do a normal car shutdown, wait for the screen to go dark, then start again. Allow up to 60 seconds for driver ventilation. Confirm the passenger seat stays off.
+4. Lower or switch off driver ventilation and wait 30 seconds. It should keep your selection.
 
-This manual-only test sends one request after a valid Park reading. Startup automation is pending confirmation of the right seat. Installation, upgrade and removal were exercised on a host fixture. The script regression verifies the opposite native label and that non-P and unavailable gear readings send no command.
+In HMG-API → Mods → Creta RHD startup ventilation → Settings, use **Ventilation at startup** and **Startup fan level**. Choose level 1, 2 or 3 (default 3), Save settings and Apply changes. The next power-on cycle uses the new level. Ventilation or heat already selected at startup is preserved.
 
-The service logs include raw API labels for both front seats. Native seat_vent passenger high currently means the right-driver candidate in this mod. To revert, uninstall only this ventilation test package.
+The trigger is the native ACC power-on state, not an engine-speed reading. It includes a head-unit restart while ACC is on. It waits five seconds initially, then allows at most twelve readiness checks at five-second intervals. Off cancels pending work. It makes at most one seat-setting request per cycle and does not keep enforcing the level.
 
-Build with build.py using the original stage08 signed wrapper, owner key and signing engine classes. Run test-script.py for the seat selector and Park checks. The diesel native enum VENT_HIGH is 5. Native names and enum values were inspected before the first test, but their physical left/right meaning was established by the owner’s observation.
+To disable it, turn off Ventilation at startup and save/apply, or disable this mod. To remove it, uninstall only Creta RHD startup ventilation. Normal physical seat controls set the current fan level.
+
+Host tests cover native ACCON 0 versus LOGICON 1, duplicate broadcasts, power-off cancellation, stale tasks, bounded retries, three level mappings, and upgrade/removal alongside the current Siri, Phone and wireless mods. DEX inspection confirms the physical RHD driver candidate uses the owner-confirmed passenger-labelled USM method. Automatic operation still needs an on-car start test.
+
+## Source and build
+
+AutoVent uses the existing mapped automotive-service loader hook to listen for the car's sticky ACC status broadcast in system_server. Its seat reads and request follow the mapped BCM and USM APIs used by HMG-API’s vehicle hub. Native logical passenger maps to the physical RHD driver on this exact car, confirmed in manual test 0.1.1. Earlier version 0.1.0 selected the left passenger seat and was superseded.
+
+Build from the same stage08 baseline with the owner key, signing engine classes, JDK17 --java path, --android-jar and --r8 as for ../phone-key/build.py. That folder’s compile-only API stubs are reused and excluded from the output. Compile StartCycle.java and StartCycleTest.java with javac and run the test with assertions. The manual scripts remain as the reference for the confirmed seat command.
