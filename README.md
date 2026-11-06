@@ -53,4 +53,4 @@ Cluster turns remain **off by default** while a new owner establishes the wirele
 
 The inherited repository contains EV and other-car mods. Their presence does **not** make them appropriate for this diesel. Use the dedicated port workflow, not the inherited generic installer or an unmodified Creta EV release. The [original upstream README](README-upstream.md) is retained for architecture context.
 
-License: [AGPL-3.0](LICENSE). Existing upstream copyright and license notices remain in place. This branch is based on sirishant/HMG-API commit `3a81b461125ba373c2f842829f24a577b78147e5` (`creta-1.3.0`); later upstream changes have not been integrated or vehicle-tested here.
+License: [AGPL-3.0](LICENSE). Existing upstream copyright and license notices remain in place. This branch is based on sirishant/HMG-API commit `3a81b461125ba373c2f842829f24a577b78147e5` (`creta-1.3.0`); later upstream changes have not been integrated or vehicle-tested here. The [Creta EV 1.3.1 compatibility review](ports/creta-diesel/docs/UPSTREAM-1.3.1-REVIEW.md) records matching new diesel hook signatures, button behavior, and the upgrade/signing work required before a trial.
