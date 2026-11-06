@@ -1,0 +1,25 @@
+{
+  "id": "creta-carplay-phone",
+  "name": "Creta CarPlay Phone button",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "authors": [
+    "Creta diesel port"
+  ],
+  "license": "AGPL-3.0",
+  "description": "Opens CarPlay Phone on a short steering Call release during an idle CarPlay session.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "model": "SU2IFL",
+    "region": "IND",
+    "firmware": "260430"
+  },
+  "hooks": {
+    "jar": "hooks.jar",
+    "entry": "hmgapi.mods.creta.PhoneKey",
+    "points": {
+      "framework.hkmc_loader.automotive_service": "observe",
+      "framework.window_manager_service.intercept_key": "observe"
+    }
+  }
+}
