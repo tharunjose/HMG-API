@@ -12,3 +12,7 @@ Output: CRETA-CLUSTER-STOP, with COMPLETE.txt when finished. FAILED.txt indicate
 ## Collector correction
 
 First vehicle attempt failed before capture: worker.txt reports `sed: not found`. Revision 2 uses the exact service name derived from the captured stock framework and a POSIX-shell-only field filter. It checks for a readable Display Type field before announcing that capture started. The failed sed-based filter is not included in this public port; active filtering uses shell builtins. Revised collector is locally tested, not yet run on the vehicle.
+
+## Collector revision 3 — 6 November 2026
+
+The second failure report explicitly says `printf: not found`; the filter could not emit fields and the preflight output was empty. That failure does not prove cluster service access is broken. Revision 3 replaces printf with echo for fixed-label fields and preflight output. The regression test deliberately makes printf and sed unavailable: it reproduces revision 2’s failure, passes the corrected 60-sample capture, checks unreadable-service rejection and excludes private test strings. This is host verification; revision 3 still needs an on-car run. No projection or vehicle settings are changed.

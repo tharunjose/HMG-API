@@ -10,7 +10,7 @@ toast() {
 svc=com.hkmc.micom.cluster
 . "$filter"
 preflight=$(dumpsys "$svc" 2>/dev/null | cluster_fields)
-printf '%s\n' "$preflight" > "$out/preflight.txt"
+echo "$preflight" > "$out/preflight.txt"
 case "$preflight" in
     *'Display Type'*'='*) ;;
     *) echo 'No readable navigation display fields from stock cluster service' > "$out/FAILED.txt"
