@@ -1,0 +1,37 @@
+{
+  "id": "creta-auto-vent",
+  "name": "Creta driver ventilation test",
+  "version": "0.1.0",
+  "hmgapi": ">=1.0.1",
+  "authors": [
+    "Creta diesel port"
+  ],
+  "license": "AGPL-3.0",
+  "description": "Manual driver ventilation level 3 test before enabling startup automation.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "model": "SU2IFL",
+    "region": "IND",
+    "firmware": "260430"
+  },
+  "vehicle": {
+    "read": [
+      "gear.park",
+      "seat_vent.driver",
+      "seat_state.driver",
+      "seat_vent.passenger"
+    ],
+    "commands": [
+      "seat_vent"
+    ]
+  },
+  "services": [
+    {
+      "name": "test",
+      "script": "test.sh",
+      "user": "root",
+      "restart": false,
+      "start": "manual"
+    }
+  ]
+}
