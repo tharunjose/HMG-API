@@ -1,6 +1,6 @@
 # Results and unresolved work
 
-As of 5 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
+As of 6 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
 
 ## Confirmed on the car
 
@@ -8,11 +8,11 @@ NEMESIS 1.16.7; local base 1.0.1.2; map 424/424; wireless wrapper 2.5.0.1 contai
 
 ## Manual cancellation remains unresolved
 
-A parked Google Maps cancellation left the previous cluster instruction visible. Later clearing after a short drive was explicitly confirmed to be **arrival at the destination**, not manual cancellation. Treat these as different cases.
+A parked Google Maps cancellation left the previous cluster instruction visible. Later clearing after a short drive was explicitly confirmed to be **arrival at the destination**, not manual cancellation. Treat these as different cases. On 6 November, the owner reproduced the Google Maps manual-cancellation issue and confirmed that starting a route in the head unit’s Hyundai navigation, then cancelling it, returns the cluster to normal. This is a temporary clearing workaround, not a repair of the CarPlay cancellation path.
 
 A likely code gap is `CpTurns.stop()`: it clears HUD data and calls `display.guidanceEnded()` only if a car-specific display is registered. This diesel uses the generic path. The EV renderer has separate guidance-ended handling, but that is not proof that installing it on the diesel is correct. No fix has been installed and no captured trace yet proves the cause.
 
-The diagnostic in `usb/cluster-stop-check` is read-only, with selected navigation fields and fixed event labels. First attempt failed before recording because the car lacks `sed`. Revision 2 uses shell builtins and the exact stock service name; a readable-display preflight must pass. It passed local mocked tests and is staged for a vehicle retry. The result of that retry is not yet available.
+The diagnostic in `usb/cluster-stop-check` is read-only, with selected navigation fields and fixed event labels. First attempt failed before recording because the car lacks `sed`. Revision 2 uses shell builtins and the exact stock service name; a readable-display preflight must pass. It passed local mocked tests, but the owner reports that revision 2 also displayed a failure message. Its error files have not yet been retrieved, so the second failure’s cause is unknown. Inspect those files before requesting another retry; do not assume the earlier missing-command cause recurred.
 
 ## Wi-Fi findings
 
