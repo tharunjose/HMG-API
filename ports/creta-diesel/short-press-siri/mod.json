@@ -1,0 +1,18 @@
+{
+  "id": "creta-siri-short",
+  "name": "Creta steering voice (short press)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "authors": ["Creta diesel port"],
+  "license": "AGPL-3.0",
+  "description": "Tap the steering voice button to request the car's voice hold. With an iPhone on CarPlay, this requests Siri. Applies even when the phone is disconnected.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "model": "SU2IFL",
+    "region": "IND",
+    "firmware": "260430"
+  },
+  "input": [
+    {"key": "ptt", "press": "short", "send": "ptt hold"}
+  ]
+}
