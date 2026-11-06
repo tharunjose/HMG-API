@@ -1,0 +1,37 @@
+{
+  "id": "creta-diesel-battery-panel",
+  "name": "Creta 12V battery panel",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "authors": [
+    "Creta diesel port"
+  ],
+  "license": "AGPL-3.0",
+  "description": "Tap the split-screen page for the latest reported 12V state of charge.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "region": "IND",
+    "model": "SU2IFL",
+    "firmware": "260430"
+  },
+  "live": true,
+  "apps": [
+    {
+      "apk": "app/BatteryPanel.apk",
+      "package": "dev.hmgapi.creta.battery"
+    }
+  ],
+  "provides": {
+    "panel": [
+      {
+        "title": "12V battery",
+        "widget": "dev.hmgapi.creta.battery/.BatteryWidget"
+      }
+    ]
+  },
+  "vehicle": {
+    "read": [
+      "battery12v.soc"
+    ]
+  }
+}

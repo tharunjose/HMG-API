@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.hmgapi.creta.battery" android:versionCode="1" android:versionName="1.0.0">
+    <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="19" />
+    <application android:label="Creta 12V battery" android:allowBackup="false">
+        <receiver android:name=".BatteryWidget" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget" />
+        </receiver>
+    </application>
+</manifest>
