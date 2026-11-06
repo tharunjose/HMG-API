@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import tempfile
 import zipfile
@@ -15,7 +16,12 @@ for name in ('baseline', 'key', 'engine-classes', 'baksmali', 'output'):
     p.add_argument('--' + name, type=Path, required=True)
 p.add_argument('--smali-classpath', required=True)
 p.add_argument('--java', default='java')
+p.add_argument('--compass', action='store_true', help='build the stage 17 compass candidate')
+for name in ('android-jar', 'r8', 'cluster-stub'):
+    p.add_argument('--' + name, type=Path)
 a = p.parse_args()
+if a.compass and not all(x and x.is_file() for x in (a.android_jar, a.r8, a.cluster_stub)):
+    p.error('--compass needs --android-jar, --r8 and --cluster-stub')
 if not a.key.is_file() or a.output.exists():
     p.error('An existing owner key and a new output filename are required')
 
@@ -63,6 +69,25 @@ with tempfile.TemporaryDirectory(prefix='diesel-stop-build-') as tmp:
         source = source.replace(edit['old'], edit['new'])
     source, count = re.subn(r'(?ms)^\.method stop\(\)V$.*?^\.end method$', lambda _: (HERE/'stop.smali').read_text().strip(), source)
     assert count == 1
+    helper = Path('hmgapi/mods/wireless/dipo/DieselCompass.smali')
+    if a.compass:
+        ref = 'Lhmgapi/mods/wireless/dipo/DieselCompass;'
+        anchor = '    iput-object p3, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->restart:Ljava/lang/Runnable;'
+        assert source.count(anchor) == 1
+        source = source.replace(anchor, anchor + '\n    invoke-static {p1}, ' + ref + '->watch(Landroid/content/Context;)V')
+        anchor = '    :generic\n    iget-object v0, p0, Lhmgapi/mods/wireless/dipo/CpTurns;->cluster:Lhmgapi/hook/Cluster;'
+        assert source.count(anchor) == 1
+        source = source.replace(anchor, anchor + '\n    invoke-static {v0}, ' + ref + '->restore(Lhmgapi/hook/Cluster;)Z\n    move-result v1\n    if-nez v1, :done')
+        classes = work/'helper-classes'
+        classes.mkdir()
+        subprocess.run(['javac', '--release', '8', '-cp', str(a.android_jar), '-d', str(classes), str(a.cluster_stub), str(HERE/'DieselCompass.java')], check=True)
+        helperdex = work/'helper.dex-output'
+        helperdex.mkdir()
+        run('-cp', a.r8, 'com.android.tools.r8.D8', '--release', '--min-api', '19', '--lib', a.android_jar, '--classpath', classes, '--output', helperdex, classes/helper.with_suffix('.class'))
+        disassemble(helperdex/'classes.dex', work/'helper-smali')
+        assert list((work/'helper-smali').rglob('*.smali')) == [work/'helper-smali'/helper]
+        assert not (tree/helper).exists()
+        shutil.copyfile(work/'helper-smali'/helper, tree/helper)
     target.write_text(source)
     dex = work/'classes.dex'
     run('-cp', a.smali_classpath, 'org.jf.smali.Main', 'assemble', '-a', '19', tree, '-o', dex)
@@ -72,7 +97,9 @@ with tempfile.TemporaryDirectory(prefix='diesel-stop-build-') as tmp:
     checked = work/'checked'
     disassemble(jar, checked)
     after = {f.relative_to(checked): digest(f) for f in checked.rglob('*.smali')}
-    assert before.keys() == after.keys()
+    assert set(after) == set(before) | ({helper} if a.compass else set())
+    if a.compass:
+        assert after[helper] == digest(tree/helper)
     assert [str(k) for k in before if before[k] != after[k]] == [REF['class']]
     # Include ONLY the three edited methods and field in the rebuilt class.
     def bodies(code):
@@ -82,9 +109,13 @@ with tempfile.TemporaryDirectory(prefix='diesel-stop-build-') as tmp:
     assert set(rebuilt) == set(original)
     # Assembler changes address labels. All untouched method bodies must match exactly.
     changed = {'stop()V', 'turn(Ljava/lang/Integer;Lhmgapi/mods/wireless/dipo/CpTurns$Update;)V', 'sessionStarted()V'}
+    if a.compass:
+        ctor = 'constructor <init>(Landroid/content/Context;Lhmgapi/hook/Cluster;Ljava/lang/Runnable;)V'
+        assert '->watch(' in rebuilt[ctor] and '->restore(' in rebuilt['stop()V']
+        changed.add(ctor)
     assert all(rebuilt[k] == v for k, v in original.items() if k not in changed)
     assert '->tbtInfo(IIFFIIIII)V' in rebuilt['stop()V'] and '->mainOwner:' in rebuilt['stop()V']
-    meta['version'] = REF['candidate_mod_version']
+    meta['version'] = '2.5.0-diesel.3' if a.compass else REF['candidate_mod_version']
     (mod/'mod.json').write_text(json.dumps(meta, indent=2)+'\n')
     signing('sign', mod, a.key)
     signing('verify', mod)
@@ -93,7 +124,7 @@ with tempfile.TemporaryDirectory(prefix='diesel-stop-build-') as tmp:
     desc = outer/'NEMESIS.data'
     text = desc.read_text()
     assert 'package-version=2.5.0.1\n' in text
-    desc.write_text(text.replace('package-version=2.5.0.1\n', 'package-version=2.5.0.2\n'))
+    desc.write_text(text.replace('package-version=2.5.0.1\n', 'package-version=2.5.0.3\n' if a.compass else 'package-version=2.5.0.2\n'))
     pack(outer, a.output)
     print('Verified original signer, original hooks hash and rebuilt class comparison.')
     print('Output SHA256', digest(a.output))
