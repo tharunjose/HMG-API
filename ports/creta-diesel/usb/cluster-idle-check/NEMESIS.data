@@ -1,0 +1,4 @@
+[nemesis]
+version=1.1
+type=execute
+path=idle-start.sh
