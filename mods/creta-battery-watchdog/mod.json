@@ -1,0 +1,13 @@
+{
+  "id": "creta-battery-watchdog",
+  "name": "Creta 12V Battery Watchdog",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "authors": ["Creta diesel port"],
+  "license": "AGPL-3.0",
+  "description": "Displays 12V low-charge, parked-drop and poor recovery warnings while the head unit is awake.",
+  "system": {"product": "SU2IFL.IND.0000.V010.001.260430", "model": "SU2IFL", "region": "IND", "firmware": "260430"},
+  "live": true,
+  "services": [{"name": "watch", "script": "svc/watch.sh", "user": "system", "start": "android", "restart": true}],
+  "vehicle": {"read": ["battery12v.soc"]}
+}
