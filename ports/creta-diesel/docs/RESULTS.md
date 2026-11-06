@@ -64,3 +64,5 @@ Owner-confirmed on 6 November 2026 — a short steering phone-button press opens
 The owner requested startup ventilation on the right driver seat at level3. The 0.1.0 manual test using native seat_vent driver high activated the physical left passenger seat. Version0.1.1 selects the opposite native seat label for another manual test. Physical right-seat confirmation and startup automation are pending.
 
 The owner confirmed corrected manual version0.1.1 works on the physical right driver seat. Automatic version1.0.0 is prepared with configurable level1/2/3 and a startup enable switch. The automatic start and manual override checks are pending.
+
+Owner-confirmed on 6 November 2026 — creta-auto-vent 1.0.0 passed the requested startup and physical-control test. The physical right driver seat starts ventilation at the default level 3, the passenger seat stays off, and reducing or switching off ventilation with the physical control keeps that selection. Other level selections have host coverage; a separate vehicle test changing each startup level was not reported.

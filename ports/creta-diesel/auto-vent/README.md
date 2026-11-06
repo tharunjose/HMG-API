@@ -1,5 +1,7 @@
 # Automatic RHD driver ventilation — 1.0.0
 
+Owner-confirmed on 6 November 2026 — creta-auto-vent 1.0.0 passed the requested startup and physical-control test. The physical right driver seat starts ventilation at the default level 3, the passenger seat stays off, and reducing or switching off ventilation with the physical control keeps that selection.
+
 The owner confirmed manual test 0.1.1 controls the physical right driver seat at level 3 and the seat controls work. This update requests that same native seat at startup.
 
 1. Install **Creta RHD startup ventilation 1.0.0** from Nemesis → Package Store → USB as an update to the existing ventilation test.
@@ -13,7 +15,7 @@ The trigger is the native ACC power-on state, not an engine-speed reading. It in
 
 To disable it, turn off Ventilation at startup and save/apply, or disable this mod. To remove it, uninstall only Creta RHD startup ventilation. Normal physical seat controls set the current fan level.
 
-Host tests cover native ACCON 0 versus LOGICON 1, duplicate broadcasts, power-off cancellation, stale tasks, bounded retries, three level mappings, and upgrade/removal alongside the current Siri, Phone and wireless mods. DEX inspection confirms the physical RHD driver candidate uses the owner-confirmed passenger-labelled USM method. Automatic operation still needs an on-car start test.
+Host tests cover native ACCON 0 versus LOGICON 1, duplicate broadcasts, power-off cancellation, stale tasks, bounded retries, three level mappings, and upgrade/removal alongside the current Siri, Phone and wireless mods. DEX inspection confirms the physical RHD driver candidate uses the owner-confirmed passenger-labelled USM method. Automatic startup and the physical-control check passed the owner’s test on this car.
 
 ## Source and build
 
