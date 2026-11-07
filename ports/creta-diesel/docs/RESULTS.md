@@ -1,6 +1,25 @@
 # Results and unresolved work
 
-As of 6 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
+As of 7 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
+
+## Owner results — 7 November 2026
+
+On the same exact Indian diesel firmware, the owner reports:
+
+- The agreement screen stayed absent on a normal car start. Stock camera, radio and steering remained normal.
+- Richer renderer `1.3.1-diesel.1` installed successfully. Two Google Maps route start/cancel cycles, near-turn and roundabout graphics, distance bar, arrival and return to compass worked.
+- Baseline steering Phone opening still worked after a call in this run. The earlier intermittent post-call failure was not reproduced. Steering end-call did not work; the standalone Phone handler does not implement active-call hangup.
+- Projection Extras `1.1.1-diesel.1` installed. One unsolicited factory voice-command UI activation occurred while CarPlay was active. No button press was reported. Cause is unproven; post-Extras Phone checks remain untested and full session validation is not claimed.
+
+The pre-trial capability capture returned successfully: 24 files copied and verified privately, six OEM file hashes matched the capture manifest, and 349 cached-getter results included two missing-method errors. It predates renderer/Extras installation and cannot diagnose the later voice event. Battery SOC was readable through both the HMG path and a direct cached BCM getter; panel, Watchdog status and alert behavior remain unverified. A combined reading command returned nonzero despite emitting values, which is a diagnostic lead rather than justification to ignore transport errors.
+
+The Extras port has no input declarations or AA Call-key hook. It does shorten DiPO's Siri-end next-screen check from 800ms to 300ms; the exact firmware has the matching stock path. A timing interaction is only a hypothesis. No speculative voice or call-control patch was staged.
+
+Raw vehicle data, OEM binaries and identifying logs remain private. These are one owner's reported functional checks, not broad compatibility or long-term stability claims. Next checks are consolidated for a convenient visit; Wi-Fi/SmartTube remain paused.
+
+## Earlier results and investigation history
+
+The sections below preserve previous states; use the dated result above for current status.
 
 ## Confirmed on the car
 

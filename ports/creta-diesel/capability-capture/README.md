@@ -9,3 +9,7 @@ Install package; launch once with a USB bearing CRETA-CAPABILITY-CAPTURE. The de
 `CRETA_JAVA=/path/to/java python3 test.py` checks JVM mock results, unknowns, product gate, setter refusal, normal/partial capture, existing output preservation and timeout behavior. Static-shell and DEX035 checks accompany packaging. These do not prove access to native Binder services on the car.
 
 The inventory is the Android-visible surface, not a complete ECU/CAN inventory. Metadata includes write signatures for later review but never tests them. No ACC, AEB, parking, engine, HVAC or seat commands are executed.
+
+## Vehicle collection result — 7 November 2026
+
+Owner completed collection and returned the drive. All 24 imported files matched source SHA256 hashes; the six captured OEM files matched the recorded MD5 manifest. The output contained 349 getter results including two missing-method results. COMPLETE means the collection finished, not that every getter is supported or every value is valid. Capture was before the projection trials. Raw output stays private.
