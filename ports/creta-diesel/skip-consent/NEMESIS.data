@@ -1,0 +1,18 @@
+[nemesis]
+version=1.1
+id=hmgapi.creta-skip-consent
+name=Creta startup screen skip
+type=application
+package-version=1.0.0
+short-desc="Skip the normal startup agreement. Exact-firmware trial."
+os="SU2IFL.IND.0000.V010.001.260430"
+models="any"
+depends="hmgapi@>=1.0.1"
+preinstall=scripts/preinstall.sh
+postinstall=scripts/postinstall.sh
+preuninstall=scripts/preuninstall.sh
+
+[app.0]
+kind=sh
+path=bin/open.sh
+uid=root

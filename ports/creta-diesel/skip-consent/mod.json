@@ -1,0 +1,16 @@
+{
+  "id": "creta-skip-consent",
+  "name": "Creta startup screen skip",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.1",
+  "conflicts": ["creta-startup-notice"],
+  "authors": ["Creta diesel port", "Cabinwright (original skip approach)"],
+  "license": "AGPL-3.0",
+  "description": "Exact-firmware trial: skip normal startup agreement construction using the factory acceptance path. Profile/password screens remain unchanged. Restart required; vehicle validation pending.",
+  "system": {
+    "product": "SU2IFL.IND.0000.V010.001.260430",
+    "model": "SU2IFL",
+    "region": "IND",
+    "firmware": "260430"
+  }
+}
