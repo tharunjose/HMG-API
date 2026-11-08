@@ -1,5 +1,7 @@
 # Creta EV 1.3.1: diesel compatibility review
 
+Historical assessment. See [9 November update review](UPSTREAM-UPDATE-REVIEW-2026-11-09.md) for current candidates and the later confirmed diesel cancellation/renderer results.
+
 Reviewed 6 November 2026. **A plausible port candidate, not a tested diesel upgrade.** The public builder and installed diesel baseline remain pinned to Creta EV 1.3.0. No new map, vehicle payload, USB installer or release was produced by this review.
 
 ## Exact source boundary
