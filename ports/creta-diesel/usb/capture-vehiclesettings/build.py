@@ -1,5 +1,6 @@
 """Build the source-only Nemesis collector; OEM files are copied only on the car."""
 import argparse
+import configparser
 import hashlib
 from pathlib import Path
 import zipfile
@@ -14,8 +15,8 @@ version=1.1
 id=creta.vehiclesettings.capture
 name=Creta Vehicle Settings capture (read only)
 type=application
-package-version=1.0.0
-short-desc="Copies the vehicle settings app and UI dependencies for offline analysis."
+package-version=1.0.1
+short-desc="Copies Vehicle Settings and UI files for offline analysis."
 os="SU2IFL.IND.0000.V010.001.260430"
 models="any"
 preinstall=scripts/preinstall.sh
@@ -25,6 +26,11 @@ kind=sh
 path=bin/capture.sh
 uid=root
 '''
+# Nemesis rejects descriptions above 64 Unicode characters before install.
+metadata = configparser.ConfigParser(interpolation=None)
+metadata.read_string(descriptor)
+if len(metadata['nemesis']['short-desc'].strip('"')) > 64:
+    raise ValueError('Nemesis short-desc must be at most 64 characters')
 target = a.out / 'creta-vehiclesettings-capture.zip'
 files = {'NEMESIS.data': descriptor.encode(),
          'bin/capture.sh': (here / 'capture.sh').read_bytes(),
@@ -40,5 +46,5 @@ with zipfile.ZipFile(target) as z:
     assert set(z.namelist()) == set(files)
     for name, data in files.items():
         assert z.read(name) == data
-(a.out / 'CRETA-VEHICLESETTINGS-CAPTURE').write_text('Creta Vehicle Settings capture 1.0.0\n')
+(a.out / 'CRETA-VEHICLESETTINGS-CAPTURE').write_text('Creta Vehicle Settings capture 1.0.1\n')
 print(target, hashlib.sha256(target.read_bytes()).hexdigest())
