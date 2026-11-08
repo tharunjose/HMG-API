@@ -1,6 +1,6 @@
 # Results and unresolved work
 
-As of 7 November 2026; one owner, one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. No broad compatibility claim is made.
+Updated 8 November 2026. The original baseline is one 2024 India Creta diesel AT, full Android product `SU2IFL.IND.0000.V010.001.260430`. These are owner-reported functional results, with local code and file checks where noted. A separate friend’s manual-car hotspot result is identified below. No broad compatibility claim is made.
 
 ## Owner results — 7 November 2026
 
@@ -16,6 +16,12 @@ The pre-trial capability capture returned successfully: 24 files copied and veri
 The Extras port has no input declarations or AA Call-key hook. It does shorten DiPO's Siri-end next-screen check from 800ms to 300ms; the exact firmware has the matching stock path. A timing interaction is only a hypothesis. No speculative voice or call-control patch was staged.
 
 Raw vehicle data, OEM binaries and identifying logs remain private. These are one owner's reported functional checks, not broad compatibility or long-term stability claims. Next checks are consolidated for a convenient visit; Wi-Fi/SmartTube remain paused.
+
+## Friend’s diesel manual — hotspot observation, 8 November 2026
+
+The owner reports that a Samsung S23 hotspot configured with WPA2 produced a connection error on the friend’s 2024 diesel manual Creta. Changing that hotspot to open/no password allowed the head unit to connect, and SmartTube worked. This establishes a reported working internet/playback session in that configuration, not the cause of the secured-network failure. Password entry/storage, saved-network configuration and protected-network negotiation remain unisolated; a WPA3-only explanation does not fit the reported WPA2 attempt. Band and other hotspot settings were not recorded.
+
+No simultaneous wireless Android Auto/hotspot result or repeated reconnect test was reported. This is a second vehicle’s result; the original owner’s diesel AT Wi-Fi/SmartTube work remains paused. Open mode is a diagnostic observation, not a required permanent configuration. No new package was needed or prepared for this report.
 
 ## Earlier results and investigation history
 
