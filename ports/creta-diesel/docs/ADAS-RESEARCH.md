@@ -21,3 +21,7 @@ The broad capability collector omitted HKMC_VehicleSetting APK/ODEX: it captured
 Reviewed19 mod manifests across Open-HMG/HMG-API main c3bc7edd559e96278d266d391e62886ff136e628 and sirishant/HMG-API creta-su2iev e1664558ab715dbbb8416b5d21693d7e41bab6bc. Also checked xwtk/hmg_nemesis tree345f171850c35742f84f0fbe511d0b7ab50364fc and targeted public searches. No matching independent ADAS/warning-only/manual-ACC implementation was identified in this scope. This is not a claim that none exists anywhere; external store packages and private Discord discussions were not comprehensively audited.
 
 Warning-only feasibility remains unconfirmed. Next analysis needs the vehicle-settings menu eligibility and value mappings, with OEM support evidence before any change to safety-related behavior. Do not infer support by forcing a menu visible or trying guessed values.
+
+## Supplement prepared — 8 November 2026
+
+Vehicle Settings collector1.0.0 is now built and host-tested (14fixtures). It copies the actual VehicleSetting APK/ODEX, SettingsCommon APK/ODEX and hkmc/framework resource APKs, with source/copy hash verification and retained prior output. No ADAS commands or settings changes. This is local preparation only; physical USB copy and car collection remain pending. See [capture source and instructions](../usb/capture-vehiclesettings/README.md).
