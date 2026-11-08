@@ -93,3 +93,7 @@ Startup-agreement dismissal1.0.0 is prepared using HMG-API’s native startup_no
 The owner prefers complete startup-screen skipping. On 7 November 2026, three returned SystemUI captures matched exactly, with verified capture hashes and local copies. The exact normal-start branch matches the documented Cabinwright approach. [Creta startup screen skip 1.0.0](../skip-consent/README.md) changes the normal screen-construction call to the existing factory acceptance method through a nine-byte ODEX/checksum patch. The stock APK and HMG-API core remain unchanged. The actual installed ARM patch tool, 626-class comparison, installed-base apply/remove/rollback, coexistence, and refusal checks passed. The signed trial is prepared for parked vehicle testing; startup and warm-wake behavior are not yet verified on the car.
 
 Fallback dismissal1.0.1 remains an alternative, with no fixed12-second delay. It must not run alongside the full-skip trial. The HMG-API startup-notice permission is not needed for the ODEX skip.
+
+## ADAS desk research
+
+See [ADAS feasibility review](ADAS-RESEARCH.md) for the OEM feature grouping, manual-transmission ACC limitation, current community search scope and missing VehicleSetting capture. No ADAS-changing package is provided.
