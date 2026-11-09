@@ -1,0 +1,393 @@
+diff --git a/core/hmgapid/hmgapid.c b/core/hmgapid/hmgapid.c
+index ad6063b..166dc07 100644
+--- a/core/hmgapid/hmgapid.c
++++ b/core/hmgapid/hmgapid.c
+@@ -1,7 +1,9 @@
+ /*
+  * hmgapid: HMG-API's root daemon, and its client (same binary).
+  *
+- *   hmgapid daemon          start the daemon (boot hook; needs full root)
++ *   hmgapid daemon          start the daemon (needs full root)
++ *   hmgapid boot            the boot hook: returns at once; detached, starts the daemon
++ *                           if none runs, and the first call each boot runs ROOTDIR/boot.sh
+  *   hmgapid <op> [args...]  ask the daemon; prints its output, exits with its code
+  *
+  * Started from the boot hook (init's flash_recovery / qb_runtime), so it has
+@@ -42,7 +44,7 @@ typedef unsigned int u32;
+ typedef unsigned char u8;
+ typedef long sl;
+ 
+-#define VERSION "1.0.1"
++#define VERSION "1.0.2"
+ 
+ #ifndef ROOTDIR
+ #define ROOTDIR "/data/hmgapi"
+@@ -65,6 +67,9 @@ typedef long sl;
+ #ifndef GETPROP
+ #define GETPROP "/system/bin/getprop"
+ #endif
++#ifndef BOOTMARK
++#define BOOTMARK "/dev/.hmgapi-boot"   /* tmpfs: empty again at every boot */
++#endif
+ #ifndef USBROOT
+ #define USBROOT ""
+ #endif
+@@ -163,6 +168,7 @@ static long clock_sec(int clk)
+ #define O_WRONLY 1
+ #define O_RDWR 2
+ #define O_CREAT 0100
++#define O_EXCL 0200
+ #define O_TRUNC 01000
+ #define O_APPEND 02000
+ #define O_DIRECTORY 040000
+@@ -553,7 +559,7 @@ static int run_env(int fd, char *const argv[], char *const extra[], int finish)
+     }
+     envp[ne] = 0;
+     sl pid, n;
+-    int st = 0;
++    int st = 0, exited = 0;
+     char buf[4096];
+     if (x_pipe(pfd) < 0) { say(fd, "pipe failed\n"); return 1; }
+     pid = x_fork();
+@@ -564,17 +570,28 @@ static int run_env(int fd, char *const argv[], char *const extra[], int finish)
+         x_dup2(pfd[1], 1);
+         x_dup2(pfd[1], 2);
+         /* only 0-2 go to the command: the pipe's own fd, the client's socket and the
+-         * services' pipes stay here. A command's background job (the boot hook's
+-         * "(sleep 120; ...) &") kept the pipe open otherwise, the read loop below waited
+-         * for its EOF, and so did the boot script: NEMESIS started two minutes late */
++         * services' pipes stay here */
+         for (i = 3; i < 1024; i++) x_close(i);
+         x_execve(argv[0], argv, envp);
+         x_exit(127);
+     }
+     x_close(pfd[1]);
+-    while ((n = x_read(pfd[0], buf, sizeof buf)) != 0) {
++    /* Done when the command exits, not when the pipe closes: a background job it started
++     * can still hold the pipe. The unit's shell (mksh) keeps copies of fds 1 and 2 above
++     * 9 while it applies a job's ">file 2>&1", and the job inherits them, so the boot
++     * hook's "(sleep 120; ...) >log 2>&1 &" held hmgapid sh, and the boot script with it
++     * (NEMESIS two minutes late, 1.0.0 and 1.0.1). What's left in the pipe once the command
++     * has exited is still sent. */
++    for (;;) {
++        struct { int fd; short ev, rev; } p = { (int)pfd[0], POLLIN, 0 };
++        sl pr;
++        if (!exited && x_wait4(pid, &st, WNOHANG) == pid) exited = 1;
++        pr = x_poll(&p, 1, exited ? 0 : 200);
++        if (pr == -EINTR) continue;
++        if (pr <= 0) { if (exited) break; continue; }
++        n = x_read(pfd[0], buf, sizeof buf);
+         if (n == -EINTR) continue;
+-        if (n < 0) break;
++        if (n <= 0) break;
+         if (fd < 0) continue;   /* client gone, finishing: drop the output */
+         if (frame(fd, 'O', buf, (u32)n)) {   /* client gone */
+             if (!finish) { x_kill(pid, SIGKILL); break; }
+@@ -582,7 +599,7 @@ static int run_env(int fd, char *const argv[], char *const extra[], int finish)
+         }
+     }
+     x_close(pfd[0]);
+-    while (x_wait4(pid, &st, 0) == -EINTR) ;
++    if (!exited) while (x_wait4(pid, &st, 0) == -EINTR) ;
+     if ((st & 0x7f) == 0) return (st >> 8) & 0xff;
+     return 128 + (st & 0x7f);
+ }
+@@ -1839,6 +1856,47 @@ static int daemon_main(void)
+     }
+ }
+ 
++/* The boot hook's one line (install-recovery.sh, qb_runtime.sh) and HMG-API's NEMESIS
++ * service. It returns at once, so the boot script goes straight on to NEMESIS's start:
++ * waiting on HMG-API's boot steps held it (two minutes in 1.0.0). A detached child (own
++ * session, none of the caller's fds: init's oneshot cleanup can't take it down, and it
++ * holds none of the script's pipes) starts the daemon if none runs (the zygote wrapper
++ * usually started it already), then runs boot.sh if it's the first this boot: BOOTMARK,
++ * made with O_EXCL on tmpfs, is the once-per-boot lock, so the other triggers stop there. */
++static int boot_main(void)
++{
++    static char *a[] = { SH, ROOTDIR "/boot.sh", 0 };
++    sl r, f;
++    int i;
++#ifndef NOCAPCHECK
++    if (!full_root()) {
++        out(2, "hmgapid: not full root (started from adb?); start it from the boot hook\n");
++        return 1;
++    }
++#endif
++    r = x_fork();
++    if (r < 0) return 1;
++    if (r > 0) {   /* the middle child exits at once; the grandchild is init's */
++        while (x_wait4(r, 0, 0) == -EINTR) ;
++        return 0;
++    }
++    x_setsid();
++    if (x_fork() != 0) x_exit(0);
++    f = x_open("/dev/null", O_RDWR, 0);
++    if (f >= 0) { x_dup2(f, 0); x_dup2(f, 1); x_dup2(f, 2); }
++    for (i = 3; i < 1024; i++) x_close(i);
++    if (daemon_main() != 0) x_exit(0);
++    f = x_open(BOOTMARK, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
++    if (f < 0) x_exit(0);   /* another trigger ran boot.sh this boot */
++    x_close(f);
++    f = x_open(ROOTDIR "/boot.log", O_WRONLY | O_CREAT | O_TRUNC, 0600);
++    if (f >= 0) { x_dup2(f, 1); x_dup2(f, 2); if (f > 2) x_close(f); }
++    logline("boot: running boot.sh", 0, -1, 0);
++    x_execve(a[0], a, g_env);
++    logline("boot: can't run boot.sh", 0, -1, 0);
++    x_exit(127);
++}
++
+ /* ---------------- client ---------------- */
+ static int client(int argc, char **argv)
+ {
+@@ -1881,7 +1939,7 @@ int main(int argc, char **argv, char **envp)
+ {
+     g_env = envp;
+     if (argc < 2) {
+-        out(2, "usage: hmgapid daemon | hmgapid <op> [args...]\n"
++        out(2, "usage: hmgapid daemon | hmgapid boot | hmgapid <op> [args...]\n"
+                "ops: ping, version, mods, enable <id>, disable <id>, setting-get <id>,\n"
+                "     setting-set <id> <json>, mod-file <id> mod.json|settings.json, log, reboot, engine <plan|apply|keep|restore|status|recover>,\n"
+                "     services [mod], service-restart|service-stop|service-start <mod> <name>, service-log <mod> <name>,\n"
+@@ -1891,6 +1949,7 @@ int main(int argc, char **argv, char **envp)
+         return 2;
+     }
+     if (seq(argv[1], "daemon")) return daemon_main();
++    if (seq(argv[1], "boot") && argc == 2) return boot_main();
+     return client(argc - 1, argv + 1);
+ }
+ 
+diff --git a/core/hmgapid/test.sh b/core/hmgapid/test.sh
+index f2ce2e2..b85e77f 100755
+--- a/core/hmgapid/test.sh
++++ b/core/hmgapid/test.sh
+@@ -27,7 +27,7 @@ build() {
+     printf '#!/bin/sh\n'"$CAT"' "%s/bootprop" 2>/dev/null\n' "$T/$1" > "$T/$1/getprop"
+     chmod +x "$T/$1/logcat" "$T/$1/app_process" "$T/$1/getprop"
+     OUT="$T/$1" sh build.sh -DNOCAPCHECK -DROOTDIR="\"$T/$1/root\"" -DSH="\"/bin/sh\"" -DLOGCAT="\"$T/$1/logcat\"" \
+-        -DREBOOT="\"/bin/true\"" -DAPP_PROCESS="\"$T/$1/app_process\"" -DPACKAGES_LIST="\"$T/$1/packages.list\"" -DGETPROP="\"$T/$1/getprop\"" -DUSBROOT="\"$T/$1/usb\"" -DSOCK_NAME="\"hmgapid-test-$1-$$\"" -DVEHICLE_SOCK="\"hmgapi-vehicle-test-$$\"" \
++        -DREBOOT="\"/bin/true\"" -DAPP_PROCESS="\"$T/$1/app_process\"" -DPACKAGES_LIST="\"$T/$1/packages.list\"" -DGETPROP="\"$T/$1/getprop\"" -DUSBROOT="\"$T/$1/usb\"" -DBOOTMARK="\"$T/$1/bootmark\"" -DSOCK_NAME="\"hmgapid-test-$1-$$\"" -DVEHICLE_SOCK="\"hmgapi-vehicle-test-$$\"" \
+         -DSHELL_UID="$2" >/dev/null
+ }
+ run() { b=$1; shift; "$T/$b/hmgapid" "$@" 2>&1; }
+@@ -56,8 +56,15 @@ check "sh stderr streamed" "err" "$(run root sh 'echo err >&2')"
+ # a background job with its output elsewhere (the boot hook's "(sleep 120; ...) &") must not
+ # hold the client: only fds 1 and 2 may have the pipe, and those it redirected
+ t0=$(date +%s)
+-run root sh '(sleep 6) </dev/null >/dev/null 2>&1 &' >/dev/null
++run root sh "($SLEEP 6) </dev/null >/dev/null 2>&1 &" >/dev/null
+ check "sh: a background job doesn't hold the client" "yes" "$([ $(( $(date +%s) - t0 )) -lt 4 ] && echo yes || echo no)"
++# ... nor one holding a copy of the pipe made after the exec: the unit's mksh keeps fds 1 and 2
++# above 9 while it applies ">file 2>&1", and the job inherits them (seen on the US EV6: 1.0.1's
++# boot hook still waited two minutes). 9>&1 makes such a copy here (dash takes one digit only).
++t0=$(date +%s)
++out=$(run root sh "echo before; ($SLEEP 6) 9>&1 </dev/null >/dev/null 2>&1 & echo after")
++check "sh: a job holding a copy of the pipe doesn't hold the client either" "yes|before after" "$([ $(( $(date +%s) - t0 )) -lt 4 ] && echo yes || echo no)|$(echo $out)"
++check "... and the exit code still comes back" "5" "$(code root sh "($SLEEP 6) 9>&1 </dev/null >/dev/null 2>&1 & exit 5")"
+ big=$(run root sh 'i=0; while [ $i -lt 20000 ]; do echo 0123456789; i=$((i+1)); done' | wc -c)
+ check "220 KB of output, not cut" "220000" "$big"
+ mkdir -p "$T/root/root/mods/demo" "$T/root/root/mods/other"
+@@ -279,4 +286,39 @@ s.settimeout(5)
+ assert s.recv(10) == b""
+ PY
+ check "still answers after bad clients" "ok" "$(run root ping)"
++
++# --- boot: the boot hook's line returns at once (NEMESIS's start comes after it); detached, it
++# starts the daemon if none runs and runs boot.sh, once per boot (BOOTMARK): a second trigger
++# (NEMESIS's service) stops there. On the car the zygote wrapper has usually started the daemon
++# already, so boot.sh must run then too.
++build boot "$ME" ""
++B=$T/boot
++printf 'echo ran >> "%s/ran"
++echo "boot output"
++%s 3
++echo done >> "%s/ran"
++' "$B" "$SLEEP" "$B" > "$B/root/boot.sh"
++LD_PRELOAD= "$B/hmgapid" daemon >/dev/null   # the zygote wrapper's start
++t0=$(date +%s)
++out=$("$B/hmgapid" boot 2>&1)   # $(...) waits for every holder of its pipe: the detached child may hold none
++check "boot returns at once, saying nothing" "yes|" "$([ $(( $(date +%s) - t0 )) -lt 2 ] && echo yes || echo no)|$out"
++waitfor '[ "$(run boot ping)" = ok ]' || true
++check "... the daemon runs" "ok" "$(run boot ping)"
++waitfor '[ -f "$B/ran" ]' || true
++check "... and it ran boot.sh, though the daemon was already up (the zygote started it)" "ran" "$(cat "$B/ran" 2>/dev/null)"
++check "... its output in boot.log" "boot output" "$(cat "$B/root/boot.log" 2>/dev/null)"
++t0=$(date +%s)
++out=$("$B/hmgapid" boot 2>&1)
++check "a second boot returns at once too" "yes|" "$([ $(( $(date +%s) - t0 )) -lt 2 ] && echo yes || echo no)|$out"
++waitfor 'grep -q done "$B/ran"' || true
++check "... and doesn't run boot.sh again" "ran done" "$(cat "$B/ran" | tr '\n' ' ' | sed 's/ $//')"
++has "... boot.sh logged in hmgapid.log" "boot: running boot.sh" "$(cat "$B/root/hmgapid.log")"
++check "boot takes no arguments" "2" "$(code boot boot extra)"
++# no daemon yet (the zygote wrapper didn't start one): boot starts it, and runs boot.sh
++build boot2 "$ME" ""
++B=$T/boot2
++printf 'echo ran >> "%s/ran"\n' "$B" > "$B/root/boot.sh"
++"$B/hmgapid" boot >/dev/null 2>&1
++waitfor '[ "$(run boot2 ping)" = ok ] && [ -f "$B/ran" ]' || true
++check "boot with no daemon: starts it and runs boot.sh" "ok ran" "$(run boot2 ping) $(cat "$B/ran" 2>/dev/null)"
+ exit $fail
+diff --git a/core/runtime/java/hmgapi/engine/NemesisSync.java b/core/runtime/java/hmgapi/engine/NemesisSync.java
+index 6286933..c6b6426 100644
+--- a/core/runtime/java/hmgapi/engine/NemesisSync.java
++++ b/core/runtime/java/hmgapi/engine/NemesisSync.java
+@@ -196,6 +196,8 @@ final class NemesisSync {
+             if (fs != null) for (File f : fs) if (f.isFile()) put(z, "scripts/" + f.getName(), bytes(f));
+             File open = new File(e.data, "nemesis/bin/open.sh");
+             if (open.isFile()) put(z, "bin/open.sh", bytes(open));
++            File start = new File(e.data, "nemesis/bin/start.sh");   // HMG-API's boot service (descriptor)
++            if (modId == null && start.isFile()) put(z, "bin/start.sh", bytes(start));
+             if (modId != null) put(z, "mod/id", (modId + "\n").getBytes("UTF-8"));
+         } finally {
+             z.close();
+@@ -242,6 +244,9 @@ final class NemesisSync {
+             if (d.containsKey(h)) b.append(h).append('=').append(d.get(h)).append('\n');
+         }
+         b.append("\n[app.0]\nkind=sh\npath=bin/open.sh\nuid=root\n");
++        // HMG-API itself: a boot service, so NEMESIS's svcmgr starts HMG-API too (hmgapid boot:
++        // once per boot, whichever of it and the boot hook comes first)
++        if ("hmgapi".equals(d.get("id"))) b.append("\n[service.0]\nname=boot\nkind=sh\npath=bin/start.sh\nuid=root\nmode=background\n");
+         return b.toString();
+     }
+ 
+diff --git a/install/common/boot.sh b/install/common/boot.sh
+new file mode 100644
+index 0000000..fca1b69
+--- /dev/null
++++ b/install/common/boot.sh
+@@ -0,0 +1,34 @@
++#!/system/bin/sh
++# HMG-API at boot, once hmgapid is up. Run by `hmgapid boot` (the boot hook's one line
++# in install-recovery.sh and qb_runtime.sh, and HMG-API's NEMESIS service), detached
++# from the boot script, and once per boot: the call that started hmgapid runs this,
++# the others stop there. So nothing here holds a boot script or NEMESIS's start.
++# Output: /data/hmgapi/boot.log.
++#
++# The app's installer if the app is still waiting; hook-check.sh, which puts the boot
++# hook back in a boot script something else rewrote; with NEMESIS, two minutes later,
++# engine nemesis-sync, so NEMESIS lists what HMG-API has installed. If an engine apply
++# was cut off (or a trial is waiting), roll it back, and restart once if anything was
++# rolled back (apps may already have loaded the files).
++umask 077
++# what hmgapid gives its commands (the caller's environment is init's or NEMESIS's)
++export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
++export LD_LIBRARY_PATH=/vendor/lib:/system/lib
++unset LD_PRELOAD
++D=/data/hmgapi
++H=/system/bin/hmgapid
++echo "$(date) boot"
++# Already detached (own session, output to boot.log), so the background jobs start from
++# here: through `hmgapid sh` they'd hold its output pipe (mksh's saved fds), and this with it.
++if [ -s $D/state/binds.txt ]; then $H binds > $D/binds.log 2>&1 & fi
++if [ -f $D/public/HmgApi.apk ]; then sh $D/app-pending.sh </dev/null >/dev/null 2>&1 & fi
++if [ -f $D/hook-check.sh ]; then sh $D/hook-check.sh </dev/null >/dev/null 2>&1 & fi
++if [ -x /system/xbin/nemesis ]; then (sleep 120; $H engine nemesis-sync) </dev/null >$D/nemesis-sync.log 2>&1 & fi
++if [ -f $D/state/journal.json ]; then
++    $H engine recover > $D/recover.log 2>&1
++    if grep -q "rolled back" $D/recover.log || grep -q "trial undone" $D/recover.log; then
++        echo "$(date) recover rolled something back: restarting"
++        $H reboot
++    fi
++fi
++echo "$(date) boot done"
+diff --git a/install/common/install.sh b/install/common/install.sh
+index b0db18b..f97618d 100644
+--- a/install/common/install.sh
++++ b/install/common/install.sh
+@@ -112,6 +112,12 @@ else
+     fail "app_process md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk: an empty file HMGAPI/FORCE on the USB stick, or HMGAPI_FORCE=1 over adb."
+ fi
+ 
++# this boot's boot steps are done: an install does what they would (the app, the NEMESIS
++# sync). NEMESIS starts HMG-API's boot service after an install, and after each listing
++# the sync makes; on a unit that started with an older hmgapid there's no marker yet, and
++# boot.sh's engine recover would then undo a waiting trial in the middle of this install
++echo > "$ROOT/dev/.hmgapi-boot" 2>/dev/null || true   # not ":": a failed redirect on a special builtin ends the script
++
+ # /data/hmgapi: root only (NEMESIS runs commands with umask 0)
+ for d in "" /stock /state /mods /settings /hook /inbox /dalvik-cache /public; do
+     mkdir -p "$D$d" && chmod 700 "$D$d" || fail "make $D$d"
+@@ -159,7 +165,7 @@ rm -f "$D/hook/disable"
+         echo "file $(sum "$ROOT$f") $f"
+     done
+ } > "$D/installed.txt"
+-cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$P/hook-check.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh" "$D/hook-check.sh"
++cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$P/hook-check.sh" "$P/boot.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh" "$D/hook-check.sh" "$D/boot.sh"
+ # open.sh (NEMESIS Manager's Launch, adb) installs the app from this copy if it's missing, then opens it
+ cp "$P/app-open.sh" "$D/open.sh" && chmod 700 "$D/open.sh" || fail "keep open.sh"
+ cp "$P/HmgApi.apk" "$D/HmgApi.apk" && chmod 644 "$D/HmgApi.apk" || fail "keep a copy of the app"
+diff --git a/install/common/lib.sh b/install/common/lib.sh
+index f2b73b6..44f1175 100644
+--- a/install/common/lib.sh
++++ b/install/common/lib.sh
+@@ -4,24 +4,12 @@ ROOT=${ROOT:-}
+ HOOK_BEGIN="# HMGAPI_HOOK begin"
+ HOOK_END="# HMGAPI_HOOK end"
+ 
+-# The boot hook: start hmgapid (and, if the app is still waiting, its installer; hook-check.sh, which puts
+-# this block back in a boot script something else rewrote; with NEMESIS, two minutes
+-# later, engine nemesis-sync, so NEMESIS lists what HMG-API has installed); if an engine apply was cut off (or a trial is
+-# waiting), roll it back, and restart once if anything was rolled back (apps
+-# may already have loaded the files).
++# The boot hook: `hmgapid boot`, which returns at once (the boot script goes straight on
++# to NEMESIS's start) and, detached, starts hmgapid and runs /data/hmgapi/boot.sh
++# (HMG-API's boot steps) once per boot.
+ hook_block() {
+     echo "$HOOK_BEGIN (HMG-API: starts hmgapid. HMG-API's uninstall removes this block.)"
+-    echo 'if [ -x /system/bin/hmgapid ]; then'
+-    echo '    /system/bin/hmgapid daemon'
+-    echo '    if [ -s /data/hmgapi/state/binds.txt ]; then /system/bin/hmgapid binds > /data/hmgapi/binds.log 2>&1 & fi'
+-    echo '    if [ -f /data/hmgapi/public/HmgApi.apk ]; then /system/bin/hmgapid sh "sh /data/hmgapi/app-pending.sh </dev/null >/dev/null 2>&1 &" >/dev/null 2>&1; fi'
+-    echo '    if [ -f /data/hmgapi/hook-check.sh ]; then /system/bin/hmgapid sh "sh /data/hmgapi/hook-check.sh </dev/null >/dev/null 2>&1 &" >/dev/null 2>&1; fi'
+-    echo '    if [ -x /system/xbin/nemesis ]; then /system/bin/hmgapid sh "(sleep 120; /system/bin/hmgapid engine nemesis-sync) </dev/null >/data/hmgapi/nemesis-sync.log 2>&1 &" >/dev/null 2>&1; fi'
+-    echo '    if [ -f /data/hmgapi/state/journal.json ]; then'
+-    echo '        /system/bin/hmgapid engine recover > /data/hmgapi/recover.log 2>&1'
+-    echo '        if grep -q "rolled back" /data/hmgapi/recover.log || grep -q "trial undone" /data/hmgapi/recover.log; then /system/bin/hmgapid reboot; fi'
+-    echo '    fi'
+-    echo 'fi'
++    echo 'if [ -x /system/bin/hmgapid ]; then /system/bin/hmgapid boot; fi'
+     echo "$HOOK_END"
+ }
+ 
+diff --git a/install/common/uninstall.sh b/install/common/uninstall.sh
+index c2fee82..b5b8a7f 100644
+--- a/install/common/uninstall.sh
++++ b/install/common/uninstall.sh
+@@ -134,7 +134,7 @@ if [ -z "$ROOT" ]; then
+     done
+     [ -s "$D/state/apps.installed" ] && : > "$D/state/apps.alloff"   # a reinstall turns them on again
+ fi
+-rm -f "$D/installed.txt" "$D/hook/enable" "$D/public/HmgApi.apk" "$D/HmgApi.apk" "$D/open.sh" "$D/hook-check.sh"
++rm -f "$D/installed.txt" "$D/hook/enable" "$D/public/HmgApi.apk" "$D/HmgApi.apk" "$D/open.sh" "$D/hook-check.sh" "$D/boot.sh"
+ 
+ # 6. NEMESIS's package list: HMG-API and its mods off it too, the mods first (they depend on
+ # HMG-API's package). HMGAPI_NEMESIS_SYNC=1: their scripts only unlist (refreshed first: an
+diff --git a/install/nemesis/NEMESIS.data.in b/install/nemesis/NEMESIS.data.in
+index 23d09ab..621dfba 100644
+--- a/install/nemesis/NEMESIS.data.in
++++ b/install/nemesis/NEMESIS.data.in
+@@ -16,3 +16,10 @@ preuninstall=scripts/preuninstall.sh
+ kind=sh
+ path=bin/open.sh
+ uid=root
++
++[service.0]
++name=boot
++kind=sh
++path=bin/start.sh
++uid=root
++mode=background
+diff --git a/install/nemesis/bin/start.sh b/install/nemesis/bin/start.sh
+new file mode 100644
+index 0000000..ae62ef1
+--- /dev/null
++++ b/install/nemesis/bin/start.sh
+@@ -0,0 +1,8 @@
++#!/system/bin/sh
++# HMG-API's NEMESIS service ([service.0] in NEMESIS.data, mode=background): NEMESIS's
++# svcmgr starts it at boot, so HMG-API starts with NEMESIS even when a NEMESIS install
++# or update rewrote install-recovery.sh without HMG-API's boot hook. `hmgapid boot`
++# returns at once and runs HMG-API's boot steps only if hmgapid isn't running yet, so
++# this and the boot hook can both run: the first one starts HMG-API, the other does nothing.
++[ -x /system/bin/hmgapid ] || exit 0
++exec /system/bin/hmgapid boot

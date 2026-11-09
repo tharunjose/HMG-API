@@ -1,0 +1,42 @@
+--- a/core/hmgapid/hmgapid.c
++++ b/core/hmgapid/hmgapid.c
+@@ -44,7 +44,7 @@
+ typedef unsigned char u8;
+ typedef long sl;
+ 
+-#define VERSION "1.0.2"
++#define VERSION "1.0.2.1"
+ 
+ #ifndef ROOTDIR
+ #define ROOTDIR "/data/hmgapi"
+@@ -1460,6 +1460,8 @@
+ 
+ /* Vehicle readings (hmgapi.engine.Vehicle), from HMG-API's vehicle service. A mod gets
+    only the ones it declared (state/vehicle.txt: "<mod> <reading>"); mod 0: any. */
++#include "response.h"
++
+ static int op_vehicle(int fd, const char *mod, int argc, char **argv)
+ {
+     static char want[8192], req[1024], buf[4096];
+@@ -1492,9 +1494,18 @@
+     x_setsockopt((int)s, 1 /* SOL_SOCKET */, 20 /* SO_RCVTIMEO */, &tv, sizeof tv);
+     if (x_connect(s, &a, alen) < 0) { x_close(s); say(fd, "the vehicle service isn't running (yet)\n"); return 69; }
+     if (wall((int)s, req, slen(req))) { x_close(s); return 1; }
+-    while ((n = x_read((int)s, buf, sizeof buf)) > 0) if (frame(fd, 'O', buf, (u32)n)) break;
+-    x_close(s);
+-    return n < 0 ? 1 : 0;
++    {
++        static struct vehicle_reply reply;
++        int complete = 0;
++        vehicle_reply_init(&reply);
++        while ((n = x_read((int)s, buf, sizeof buf)) > 0) {
++            complete = vehicle_reply_feed(&reply, buf, (unsigned)n, argc, argv);
++            if (complete != 0) break;
++        }
++        x_close(s);
++        if (complete != 1) return 1;
++        return frame(fd, 'O', reply.data, reply.used) ? 1 : 0;
++    }
+ }
+ 
+ /* A vehicle command (hmgapi.engine.Vehicle.COMMANDS) through HMG-API's vehicle service,
